@@ -13,7 +13,7 @@
   "files": [
     { "path": "CLAUDE.md" },
     { "path": "NEXT.md" },
-    { "kind": "folder", "path": "JustBeyond", "target-membership": [ "JustBeyond" ] },
+    { "kind": "folder", "path": "App", "target-membership": [ "JustBeyond" ] },
     {
       "kind": "group",
       "name": "Products",
