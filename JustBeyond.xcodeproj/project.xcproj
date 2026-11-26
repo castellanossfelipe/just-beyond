@@ -11,6 +11,8 @@
     ],
   },
   "files": [
+    { "path": "CLAUDE.md" },
+    { "path": "NEXT.md" },
     { "kind": "folder", "path": "JustBeyond", "target-membership": [ "JustBeyond" ] },
     {
       "kind": "group",
@@ -36,6 +38,7 @@
         "ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME": "AccentColor",
         "CODE_SIGN_STYLE": "Automatic",
         "CURRENT_PROJECT_VERSION": "1",
+        "DEVELOPMENT_TEAM": "4J79S4MSY9",
         "ENABLE_PREVIEWS": "YES",
         "GENERATE_INFOPLIST_FILE": "YES",
         "INFOPLIST_KEY_UIApplicationSceneManifest_Generation": "YES",
