@@ -28,3 +28,9 @@ def test_all_coordinates_in_range():
 
 def test_line_count_is_plausible():
     assert 100 <= len(load()["lines"]) <= 200  # [tune]
+
+
+def test_coordinates_are_rounded_to_two_decimals():
+    for lon, lat in points():
+        assert lon == round(lon, 2)
+        assert lat == round(lat, 2)
