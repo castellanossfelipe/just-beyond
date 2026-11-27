@@ -20,6 +20,7 @@ public struct OrthographicProjection: Codable, Equatable, Sendable {
     }
 
     public func project(_ point: LatLon) -> ProjectedPoint {
-        ProjectedPoint(x: 0, y: 0, depth: 0)
+        let v = point.unitVector
+        return ProjectedPoint(x: v.y, y: 0, depth: 0)
     }
 }
