@@ -3,21 +3,22 @@ import Foundation
 extension OrthographicProjection {
     /// The parts of a polyline on the near side, projected.
     public func visiblePieces(of line: [Vector3]) -> [[ProjectedPoint]] {
+        var pieces: [[ProjectedPoint]] = []
         var piece: [ProjectedPoint] = []
         var previous: (vector: Vector3, point: ProjectedPoint)?
         for vector in line {
             let point = project(vector)
             if point.depth >= 0 {
                 piece.append(point)
-            } else {
-                if let previous, previous.point.depth >= 0 {
-                    piece.append(limbCrossing(previous.vector, previous.point.depth, vector, point.depth))
-                }
-                break
+            } else if let previous, previous.point.depth >= 0 {
+                piece.append(limbCrossing(previous.vector, previous.point.depth, vector, point.depth))
+                pieces.append(piece)
+                piece = []
             }
             previous = (vector, point)
         }
-        return piece.isEmpty ? [] : [piece]
+        if !piece.isEmpty { pieces.append(piece) }
+        return pieces
     }
 
     /// Where the segment from `a` to `b` meets the horizon. Their depths have opposite signs.
