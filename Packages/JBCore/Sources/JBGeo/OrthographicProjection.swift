@@ -22,7 +22,10 @@ public struct OrthographicProjection: Codable, Equatable, Sendable {
     }
 
     public func project(_ point: LatLon) -> ProjectedPoint {
-        let v = point.unitVector
+        project(point.unitVector)
+    }
+
+    public func project(_ v: Vector3) -> ProjectedPoint {
         let lat = centre.latDeg * .pi / 180
         let lon = centre.lonDeg * .pi / 180
         // The view's three axes, in globe coordinates.
