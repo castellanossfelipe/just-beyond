@@ -17,3 +17,10 @@ def test_output_is_valid_json_with_source_scale_and_lines():
     assert data["source"]
     assert data["scale"] == "110m"
     assert isinstance(data["lines"], list)
+
+
+def test_all_coordinates_in_range():
+    assert points(), "no coordinates to check"
+    for lon, lat in points():
+        assert -180 <= lon <= 180
+        assert -90 <= lat <= 90
