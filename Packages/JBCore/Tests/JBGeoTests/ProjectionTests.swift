@@ -28,3 +28,13 @@ func limbPointsLieOnTheUnitCircle(point: LatLon) {
 @Test func antipodeIsHidden() {
     #expect(atOrigin.project(LatLon(latDeg: 0, lonDeg: 180)).depth < 0)
 }
+
+@Test(arguments: [
+    LatLon(latDeg: 0, lonDeg: -30), LatLon(latDeg: -17, lonDeg: -30),
+    LatLon(latDeg: 52, lonDeg: -64), LatLon(latDeg: 65, lonDeg: -10),
+])
+func centreProjectsToOrigin(centre: LatLon) {
+    let p = OrthographicProjection(centre: centre).project(centre)
+    #expect(abs(p.x) < 1e-12)
+    #expect(abs(p.y) < 1e-12)
+}
