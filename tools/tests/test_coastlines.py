@@ -24,3 +24,7 @@ def test_all_coordinates_in_range():
     for lon, lat in points():
         assert -180 <= lon <= 180
         assert -90 <= lat <= 90
+
+
+def test_line_count_is_plausible():
+    assert 100 <= len(load()["lines"]) <= 200  # [tune]
