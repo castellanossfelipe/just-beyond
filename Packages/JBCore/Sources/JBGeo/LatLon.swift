@@ -1,3 +1,5 @@
+import Foundation
+
 /// A position on the globe, in degrees. North and east are positive.
 public struct LatLon: Codable, Equatable, Sendable {
     public var latDeg: Double
@@ -9,6 +11,7 @@ public struct LatLon: Codable, Equatable, Sendable {
     }
 
     public var unitVector: Vector3 {
-        Vector3(x: 1, y: 0, z: 0)
+        let lon = lonDeg * .pi / 180
+        return Vector3(x: cos(lon), y: sin(lon), z: 0)
     }
 }
