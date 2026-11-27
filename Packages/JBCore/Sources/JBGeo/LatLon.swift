@@ -11,7 +11,9 @@ public struct LatLon: Codable, Equatable, Sendable {
     }
 
     public init(_ vector: Vector3) {
-        self.init(latDeg: 0, lonDeg: 0)
+        self.init(
+            latDeg: atan2(vector.z, hypot(vector.x, vector.y)) * 180 / .pi,
+            lonDeg: atan2(vector.y, vector.x) * 180 / .pi)
     }
 
     public var unitVector: Vector3 {
