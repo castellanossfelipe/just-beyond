@@ -9,4 +9,8 @@ public struct Vector3: Codable, Equatable, Sendable {
         self.y = y
         self.z = z
     }
+
+    func dot(_ other: Vector3) -> Double {
+        x * other.x + y * other.y + z * other.z
+    }
 }
