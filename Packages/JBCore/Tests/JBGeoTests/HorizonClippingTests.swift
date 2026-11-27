@@ -16,3 +16,7 @@ private func radius(_ p: ProjectedPoint) -> Double {
     let line = equator(-40, 0, 40)
     #expect(view.visiblePieces(of: line) == [line.map { view.project($0) }])
 }
+
+@Test func lineOnTheFarSideDrawsNothing() {
+    #expect(view.visiblePieces(of: equator(150, 180, -150)).isEmpty)
+}
