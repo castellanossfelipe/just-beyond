@@ -1,0 +1,28 @@
+name: core
+
+# JBCore tests on Linux: fast, free on a public repo, and proof that the
+# functional core uses nothing Apple-only (ADR 0001, ADR 0007).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: core-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    # Match the Swift that local Xcode ships (Xcode 27.2 ships Swift 6.4).
+    container: swift:6.4
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift --version
+      - run: swift test --package-path Packages/JBCore

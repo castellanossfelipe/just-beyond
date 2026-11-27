@@ -14,11 +14,18 @@ Read only the sections the task points to.
   - Never import SwiftUI, UIKit or RealityKit there.
   - Never read the clock (`Date()`), call `random()`, or touch files or the network there. Time arrives as `FlightHours`; randomness only through the seeded RNG in `GameState`.
   - All core types: `Codable`, `Equatable`, `Sendable`.
+  - JBCore must build and pass its tests on Linux (CI runs it there): Foundation only, nothing from Darwin, Objective-C-only APIs or Apple-only frameworks.
 - `App/` is the thin shell: SwiftUI views, `GameStore`, the globe renderer, files, sound. Logic belongs in the core.
 - Player actions are `Command`s through `Engine.apply`; time moves only through `Engine.advance`.
 - Never add code that removes something the player built (routes, planes, designs, liveries, city choices) except as the direct result of a player command.
 - No new third-party dependencies without asking.
 - Content is data: airports, planes, parts, milestones, events and text live in JSON under `data/` and are built into `App/Resources/World/` by `tools/`. Never hand-edit built files.
+
+## Apple account (free until the pay point in late M7)
+- Signing uses Felipe's Personal Team; bundle ID `com.felipecastellanos.JustBeyond.dev`. Never change it.
+- Never add an entitlement or capability that needs the paid Apple Developer Program (iCloud, Game Center, push, In-App Purchase, Sign in with Apple). Stop and ask instead.
+- Never suggest deleting the app from the iPhone: the save lives in its container. Reinstall over it.
+- CI never signs: builds use `CODE_SIGNING_ALLOWED=NO`.
 
 ## How to work: strict TDD
 1. Write the **test list** for the task (one line per behaviour) and show it to me. Wait for my OK.
@@ -33,9 +40,12 @@ Read only the sections the task points to.
 - Use Plan mode for any change touching more than 3 files.
 
 ## Commands
+- Before every push: `scripts/check.sh` (core tests, then the app build).
 - Core tests: `swift test --package-path Packages/JBCore`
 - One suite: `swift test --package-path Packages/JBCore --filter <SuiteName>`
-- App tests: `xcodebuild test -scheme JustBeyond -destination 'platform=iOS Simulator,name=iPhone 16'` (adjust the simulator name to one installed)
+- App build: `xcodebuild build -scheme JustBeyond -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO`
+- App tests (once `AppTests` exists): `xcodebuild test -scheme JustBeyond -destination 'platform=iOS Simulator,name=<an installed iPhone>'`
+- CI: `.github/workflows/core.yml` (Linux) and `app.yml` (macOS) run on every push to `main` and every pull request.
 - Data build: `python3 tools/build_world.py && python3 -m pytest tools/tests`
 - Bots (from M5): `swift run --package-path Packages/JBSimBots jb-bots --start NYC --player typical --days 40`
 
@@ -48,7 +58,7 @@ Read only the sections the task points to.
 - Keep `main` green. Short branches, merged the same day.
 
 ## End of a session
-- All tests green, or exactly one failing test that is the next step.
+- `scripts/check.sh` green, or exactly one failing test that is the next step.
 - Update `NEXT.md` with one line: where we stopped and the next test.
 - Tell me if anything you built differs from `docs/systems-detail.md`.
 

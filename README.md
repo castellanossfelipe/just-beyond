@@ -14,6 +14,8 @@ Customize era-accurate aircraft (wings, engines, tanks, cabins) to reach the pla
 
 Early development: Milestone 0 (foundations and the globe spike). Not playable yet.
 
+[![core](https://github.com/castellanossfelipe/just-beyond/actions/workflows/core.yml/badge.svg)](https://github.com/castellanossfelipe/just-beyond/actions/workflows/core.yml) [![app](https://github.com/castellanossfelipe/just-beyond/actions/workflows/app.yml/badge.svg)](https://github.com/castellanossfelipe/just-beyond/actions/workflows/app.yml)
+
 ## How it's built
 
 - **Swift 6 and SwiftUI** for the iPhone app, a thin shell over a pure, deterministic Swift package (`JBCore`): no clock, no randomness, no I/O inside the simulation, so time away gives exactly the same result as watching.
@@ -30,7 +32,9 @@ git clone https://github.com/castellanossfelipe/just-beyond.git
 open just-beyond/JustBeyond.xcodeproj
 ```
 
-Pick an iPhone simulator and press Run. Core tests (arriving with the first slice): `swift test --package-path Packages/JBCore`.
+Pick an iPhone simulator and press Run. To run on your own iPhone, sign in to Xcode with any Apple Account and pick your Personal Team under Signing; free builds expire after 7 days, so rebuild to keep playing (reinstalling keeps your save; deleting the app doesn't).
+
+Core tests: `swift test --package-path Packages/JBCore`. Everything before a push: `scripts/check.sh`.
 
 ## License
 

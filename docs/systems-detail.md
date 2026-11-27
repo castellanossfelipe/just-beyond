@@ -1,8 +1,8 @@
-> **Snapshot of the Project doc "Just Beyond – Era 3 Systems Detail", dated 25 Nov 2026.** The Project is the source of truth. Edit it there, then re-copy here (refresh at each milestone cool-down).
+> **Snapshot of the Project doc "Just Beyond – Era 3 Systems Detail", dated 26 Nov 2026.** The Project is the source of truth. Edit it there, then re-copy here (refresh at each milestone cool-down).
 
 # Just Beyond – Era 3 Systems Detail
 
-Draft 1 · 25 Nov 2026 · Companion to the Era 3 Crossroads Spec. The Spec says *what* each system is and *why*; this doc says **exactly how it behaves**, so it can be coded and tested. The Software Design doc says how it's built.
+Draft 1 · 25 Nov 2026 (26 Nov: `maxStops` is a playtest setting, 5.1 and 14) · Companion to the Era 3 Crossroads Spec. The Spec says *what* each system is and *why*; this doc says **exactly how it behaves**, so it can be coded and tested. The Software Design doc says how it's built.
 
 **How to read the numbers**
 
@@ -183,7 +183,7 @@ For the selected plane at the selected airport: for each of 72 bearings, compute
 
 ### 5.1 Shape
 
-- A route is an ordered list of 2–6 stops (`maxStops` is a build setting: 2 for the "pairs" test build, 6 for the "lines" test build; gate G1). A route can't visit the same city twice.
+- A route is an ordered list of 2–6 stops (`maxStops` is a playtest setting chosen when a game starts and stored with it: 2 for the "pairs" test, 6 for the "lines" test; gate G1). A route can't visit the same city twice.
 - Planes fly the stops in order and back (A→B→C→B→A), then repeat.
 - One or more planes are assigned to a route. Planes on a route can be different designs; the route works only if every assigned plane can fly every leg.
 
@@ -495,7 +495,7 @@ What the player does, what the game shows, and what it teaches. Times are real t
 | 0:45 | Player drags New York → Montreal. The range ring, trip time and expected profit show while dragging; releasing opens the route card; "Fly". | Show the consequence before the commitment |
 | ~3:00 | The Dakota lands in Montreal (about 2.3 fh); cash ticks up with a sound. | Respond to everything |
 | 3:30 | A pioneer charter appears for Bermuda. The Dakota's ring reaches it, but the 60-minute band leaves a red gap over open water. The card shows the surplus Skymaster ($297,000) and a bar filling toward it. | The engine rule, without a tutorial |
-| 5:00 | (Lines build) a hint shows that dragging the route onto Boston adds a stop. | Stops are a decision |
+| 5:00 | (Lines setting) a hint shows that dragging the route onto Boston adds a stop. | Stops are a decision |
 | ~60:00 | (Usually a second session) the Skymaster is affordable. The workshop opens on purchase. Gander and Shannon glow. Shannon → Gander falls short westbound into the westerlies; the gap shows in km. | Wind shapes range |
 | +2 min | Player fits extra tanks; the ring stretches; the route New York–Gander–Shannon–London works both ways. Front page teaser: "Coming next: Idlewild opens, July 1948." | The "aha" and something to look forward to |
 
