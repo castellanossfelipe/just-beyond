@@ -21,6 +21,7 @@ extension OrthographicProjection {
             previous = (vector, point)
         }
         if !piece.isEmpty { pieces.append(piece) }
+        guard line.count >= 2 else { return [] }
         return pieces
     }
 
