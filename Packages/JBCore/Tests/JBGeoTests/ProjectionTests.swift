@@ -38,3 +38,29 @@ func centreProjectsToOrigin(centre: LatLon) {
     #expect(abs(p.x) < 1e-12)
     #expect(abs(p.y) < 1e-12)
 }
+
+@Test(arguments: [
+    LatLon(latDeg: 0, lonDeg: 89), LatLon(latDeg: -89, lonDeg: 0),
+    LatLon(latDeg: 40, lonDeg: -60), LatLon(latDeg: -35, lonDeg: 50),
+])
+func nearsideDepthIsPositive(point: LatLon) {
+    #expect(atOrigin.project(point).depth > 0)
+}
+
+@Test func northStaysUpWhenCentreMoves() {
+    for lonDeg in [-135.0, 0, 70] {
+        let view = OrthographicProjection(centre: LatLon(latDeg: 60, lonDeg: lonDeg))
+        let pole = view.project(LatLon(latDeg: 90, lonDeg: 0))
+        #expect(abs(pole.x) < 1e-12)
+        #expect(pole.y > 0)
+    }
+}
+
+@Test func antimeridianNeighboursProjectClose() {
+    let view = OrthographicProjection(centre: LatLon(latDeg: 0, lonDeg: 180))
+    let west = view.project(LatLon(latDeg: 0, lonDeg: 179.9))
+    let east = view.project(LatLon(latDeg: 0, lonDeg: -179.9))
+    #expect(abs(east.x - west.x) < 0.01)
+    #expect(abs(east.y - west.y) < 0.01)
+    #expect(west.depth > 0 && east.depth > 0)
+}
