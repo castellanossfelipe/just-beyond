@@ -1,3 +1,5 @@
+> **Snapshot of the Project doc "Just Beyond – Software Design", dated 27 Nov 2026.** The Project is the source of truth. Edit it there, then re-copy here (refresh at each milestone cool-down).
+
 # Just Beyond – Software Design (Era 3 test rollout)
 
 Draft 4 · 27 Nov 2026 (globe projection and camera in JBGeo; coastlines format; test iPhone named) · For Felipe and Claude Sonnet while coding. Built on a free Apple Account until late M7 (Development Plan 8). **What the game does** is in the GDD, the Era 3 Crossroads Spec and the **Era 3 Systems Detail** (formulas). **What gets built when** is in the Development Plan. This doc is **how it's built**. Copy it into the repo as `docs/software-design.md`; the repo copy is what Sonnet reads.

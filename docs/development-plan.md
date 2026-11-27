@@ -1,3 +1,5 @@
+> **Snapshot of the Project doc "Just Beyond – Development Plan", dated 27 Nov 2026.** The Project is the source of truth. Edit it there, then re-copy here (refresh at each milestone cool-down).
+
 # Just Beyond – Development Plan (Era 3 test rollout)
 
 Draft 5 · 27 Nov 2026 (G0 measurement; S0.2 tasks; globe math in JBGeo) · Solo developer, working when there's time, coding with Claude Sonnet, designing with Claude Opus, on a free Apple Account until late M7 (section 8). **Replaces Draft 1** (the phase plan), keeping its ground rules and art approach. How the code is built is in the **Software Design** doc; exact behaviours are in the **Era 3 Systems Detail**. Copy this doc into the repo as `docs/development-plan.md`.
