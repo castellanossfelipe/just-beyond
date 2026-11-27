@@ -9,6 +9,9 @@ extension OrthographicProjection {
         for vector in line {
             let point = project(vector)
             if point.depth >= 0 {
+                if let previous, previous.point.depth < 0 {
+                    piece.append(limbCrossing(previous.vector, previous.point.depth, vector, point.depth))
+                }
                 piece.append(point)
             } else if let previous, previous.point.depth >= 0 {
                 piece.append(limbCrossing(previous.vector, previous.point.depth, vector, point.depth))
