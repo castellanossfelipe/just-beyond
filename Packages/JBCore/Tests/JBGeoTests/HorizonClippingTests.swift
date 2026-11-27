@@ -34,3 +34,12 @@ private func radius(_ p: ProjectedPoint) -> Double {
     let pieces = view.visiblePieces(of: equator(60, 80, 120, 180, -120, -80, -60))
     #expect(pieces.count == 2)
 }
+
+@Test func lineComingIntoViewStartsOnTheLimb() throws {
+    let pieces = view.visiblePieces(of: equator(130, 110, 80, 60))
+    try #require(pieces.count == 1)
+    #expect(pieces[0].count == 3)
+    let start = try #require(pieces[0].first)
+    #expect(abs(radius(start) - 1) < 1e-9)
+    #expect(abs(start.depth) < 1e-9)
+}
