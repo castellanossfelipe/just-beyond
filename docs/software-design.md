@@ -1,8 +1,6 @@
-> **Snapshot of the Project doc "Just Beyond – Software Design", dated 26 Nov 2026.** The Project is the source of truth. Edit it there, then re-copy here (refresh at each milestone cool-down).
-
 # Just Beyond – Software Design (Era 3 test rollout)
 
-Draft 2 · 26 Nov 2026 · For Felipe and Claude Sonnet while coding. Built on a free Apple Account until late M7 (Development Plan 8). **What the game does** is in the GDD, the Era 3 Crossroads Spec and the **Era 3 Systems Detail** (formulas). **What gets built when** is in the Development Plan. This doc is **how it's built**. Copy it into the repo as `docs/software-design.md`; the repo copy is what Sonnet reads.
+Draft 4 · 27 Nov 2026 (globe projection and camera in JBGeo; coastlines format; test iPhone named) · For Felipe and Claude Sonnet while coding. Built on a free Apple Account until late M7 (Development Plan 8). **What the game does** is in the GDD, the Era 3 Crossroads Spec and the **Era 3 Systems Detail** (formulas). **What gets built when** is in the Development Plan. This doc is **how it's built**. Copy it into the repo as `docs/software-design.md`; the repo copy is what Sonnet reads.
 
 ---
 
@@ -32,7 +30,7 @@ Following Gary Bernhardt's "functional core, imperative shell" pattern: the core
                                                 │ values only (GameState, Command, Event, Preview)
 ┌───────────────────────────────────────────────▼───────────────────────────────────────────┐
 │  JBCore (Swift package, functional core: no UIKit/SwiftUI, no Date(), no random(), no I/O) │
-│   JBGeo     great circles, sampling, land mask, oceans, wind projection                    │
+│   JBGeo     globe projection and camera, great circles, sampling, land mask, oceans, wind  │
 │   JBWorld   immutable world data: airports, types, parts, era file; JSON decoding          │
 │   JBRules   range, runway, 60-minute band, comfort, share, fares, demand (pure formulas)    │
 │   JBSim     GameState, Commands, Engine.apply / advance / preview, economics, calendar,    │
@@ -43,7 +41,7 @@ Following Gary Bernhardt's "functional core, imperative shell" pattern: the core
         ▲ built JSON + grids                                   ▲ fixtures (expected numbers)
 ┌───────┴────────────────────────────┐            ┌────────────┴─────────────────────────────┐
 │ tools/ (Python): data pipeline     │            │ tools/balance: Python network model and   │
-│ OurAirports, Natural Earth, NOAA,  │            │ balance-sheet export → test fixtures      │
+│ OurAirports, Natural Earth, NOAA,  │            │ export → test fixtures (master: numbers)  │
 │ curated CSV → App/Resources/World  │            └──────────────────────────────────────────┘
 └────────────────────────────────────┘
         JBSimBots (command-line tool using JBCore): plays whole eras as bot players
@@ -65,7 +63,7 @@ JustBeyond/                         (git root, GitHub)
 ├─ App/                             the iPhone app target (shell)
 │  ├─ JustBeyondApp.swift
 │  ├─ Store/GameStore.swift
-│  ├─ Globe/                        projection, renderer, gestures, hit testing
+│  ├─ Globe/                        renderer, gestures, hit testing
 │  ├─ Cards/  Workshop/  Hangar/  Edition/  Start/  Challenges/  Settings/
 │  ├─ Theme/                        EraTheme (palette, type, line styles)
 │  ├─ Feedback/                     sound and haptics
@@ -78,12 +76,14 @@ JustBeyond/                         (git root, GitHub)
 ├─ Packages/JBSimBots/              executable: era bots → CSV reports
 ├─ tools/
 │  ├─ build_world.py  build_wind.py  build_landmask.py  build_coastlines.py
-│  ├─ export_fixtures.py            balance sheet + model → JSON fixtures
-│  ├─ balance/                      net.py, tests.py, starts.py (the reference model)
+│  ├─ export_fixtures.py            balance model → JSON fixtures
+│  ├─ balance/                      net.py, tests.py, starts.py (reference model, master for numbers; S2.0)
 │  └─ tests/                        pytest data checks
 ├─ data/                            hand-curated sources (airports_era3.csv, era3/*.json, text templates)
 └─ docs/                            copies of the design docs + adr/ (decision records)
 ```
+
+The globe projection and camera live in JBGeo, so Linux CI tests them; `App/Globe/` only draws, reads gestures and hit-tests. (Decided 27 Nov 2026.)
 
 ---
 
@@ -174,7 +174,7 @@ static func advance(_ s: GameState, by dt: FlightHours, world: World, mode: Adva
 }
 ```
 
-- **Economics.rates** runs the passenger allocation (Systems Detail 6.6) and is the expensive step. It is cached by a `networkRevision` that changes only when routes, planes, city options, the year or shares change. Target: under 20 ms for 60 routes on the target iPhone.
+- **Economics.rates** runs the passenger allocation (Systems Detail 6.6) and is the expensive step. It is cached by a `networkRevision` that changes only when routes, planes, city options, the year or shares change. Target: under 20 ms for 60 routes on the test iPhone (iPhone 13, ADR 0002).
 - **The shell** calls `advance` once per second while the app is open (for the cash ticker and the calendar stamp), and once with the whole gap when the app returns to the foreground. Plane icons are drawn from `simTime` and each route's schedule at 60 fps without calling the core.
 - **Background mode** applies the away cap (Systems Detail 11.3). The shell records when the app went to the background in the save, so a force-quit doesn't lose it.
 
@@ -192,7 +192,7 @@ Python 3 scripts in `tools/`, run by hand when data changes; outputs are committ
 | `wind.bin` | NOAA NCEP/NCAR long-term mean, ~600 hPa, 5° cells | Little-endian Float32 u,v grid with a small header | < 50 KB |
 | `landmask.bin` | Natural Earth land polygons, 0.25° | Bitset with header | ~130 KB |
 | `oceans.bin` | Natural Earth marine areas, 1° | UInt8 grid with header | ~65 KB |
-| `coastlines.json` | Natural Earth 110m (and 50m for zoom), simplified | Arrays of [lon, lat] | < 2 MB |
+| `coastlines.json` | Natural Earth 110m (and 50m for zoom), simplified | {source, scale, lines}; lines are arrays of [lon, lat] | < 2 MB |
 | `manifest.json` | All of the above | Versions and SHA-256 per file | — |
 
 **Why JSON, not a database:** 166 curated airports plus a few thousand regional towns fit in memory; JSON is diffable in git, readable by Sonnet, and decodes with `Codable` in a few lines. Revisit only if load time passes 300 ms.
@@ -217,8 +217,8 @@ Python 3 scripts in `tools/`, run by hand when data changes; outputs are committ
 - **SwiftUI**, one window: the globe fills the screen and one bottom card sits over it. Navigation is by card, never by stacked screens.
 - **GameStore** (`@Observable`, `@MainActor`) holds `GameState` and `World`, turns gestures into `Command`s, calls `Engine.apply`, plays the feedback for each `Event`, and saves.
 - **Globe renderer behind a protocol** (`GlobeRenderer`) so the drawing technology can change without touching the rest:
-  - **First candidate (spike in M0): 2D orthographic projection drawn with SwiftUI `Canvas`.** Coastlines, routes as projected great-circle polylines, range ring and band as polygons, airports as symbols. Rotation by drag, zoom by pinch. Every era style is flat illustration, so a flat drawn globe suits the art and keeps line widths crisp.
-  - **Fallback: Metal (`MTKView`) or RealityKit** if Canvas can't hold 60 fps with the full coastline and 60 routes on the oldest target iPhone.
+  - **First candidate (spike in M0): 2D orthographic projection (JBGeo) drawn with SwiftUI `Canvas`.** Coastlines, routes as projected great-circle polylines, range ring and band as polygons, airports as symbols. Rotation by drag, zoom by pinch. Every era style is flat illustration, so a flat drawn globe suits the art and keeps line widths crisp.
+  - **Fallback: Metal (`MTKView`) or RealityKit** if Canvas can't hold 60 fps with the full coastline and 60 routes on the test iPhone (iPhone 13; model, refresh rate and iOS version in ADR 0002). It is not the oldest iPhone that runs iOS 18, so G0 doesn't prove older phones. (Decided 27 Nov 2026.)
   - Decision recorded as ADR 0002 at gate G0.
 - **Theme:** `EraTheme` holds palette, fonts, line styles and paper texture; the mid-century theme is the only one for this rollout. Grey-box theme for prototypes.
 - **Feedback:** short sounds via `AVAudioEngine` and haptics via SwiftUI's sensory feedback, one per `Event` kind, so "respond to everything" is a table, not scattered code.
@@ -253,7 +253,7 @@ Testing is how the work moves forward, not a phase at the end. Kent Beck's canon
 **Rules for tests**
 
 - The core is tested through its public functions with real values. No mocks inside JBCore: there is nothing to mock, which is the point of the functional core.
-- **Expected numbers come from fixtures, not from the code.** When the balance sheet changes, run `tools/export_fixtures.py`; never edit a fixture to make a failing test pass.
+- **Expected numbers come from fixtures, not from the code.** When the balance model changes, run `tools/export_fixtures.py`; never edit a fixture to make a failing test pass.
 - Test names say the rule: `twinCannotCrossBermudaGap`, `extensionsStayAfterRunwayUpgrade`.
 - A bug is fixed only after a failing test reproduces it.
 
@@ -306,3 +306,4 @@ Short files in `docs/adr/`, one per architectural decision: context, decision, c
 | 0006 | No third-party runtime dependencies | Accepted |
 | 0007 | CI on GitHub Actions (Linux core, macOS app); no paid Apple services before the membership | Accepted |
 | 0008 | Save export and import, and a deterministic playtest journal | Accepted |
+| 0009 | The balance model in `tools/balance/` is master for numbers; fixtures come only from it | Written in S2.0 |

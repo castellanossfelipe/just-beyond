@@ -1,12 +1,10 @@
-> **Snapshot of the Project doc "Just Beyond – Development Plan", dated 26 Nov 2026.** The Project is the source of truth. Edit it there, then re-copy here (refresh at each milestone cool-down).
-
 # Just Beyond – Development Plan (Era 3 test rollout)
 
-Draft 3 · 26 Nov 2026 · Solo developer, working when there's time, coding with Claude Sonnet, designing with Claude Opus, on a free Apple Account until late M7 (section 8). **Replaces Draft 1** (the phase plan), keeping its ground rules and art approach. How the code is built is in the **Software Design** doc; exact behaviours are in the **Era 3 Systems Detail**. Copy this doc into the repo as `docs/development-plan.md`.
+Draft 5 · 27 Nov 2026 (G0 measurement; S0.2 tasks; globe math in JBGeo) · Solo developer, working when there's time, coding with Claude Sonnet, designing with Claude Opus, on a free Apple Account until late M7 (section 8). **Replaces Draft 1** (the phase plan), keeping its ground rules and art approach. How the code is built is in the **Software Design** doc; exact behaviours are in the **Era 3 Systems Detail**. Copy this doc into the repo as `docs/development-plan.md`.
 
 **Scope of this rollout:** from an empty repo to an **external TestFlight of Era 3 on the whole globe** (gate G3). Weekly challenges with Game Center, the timelapse, the App Store page and launch come after this plan. Everything through M6, and M7's challenges and accessibility work, is built and tested with a free Apple Account; the paid membership is bought after S7.3, before S7.2, S7.4 and gate G3 (section 8).
 
-**The plan is measured in hours, not weeks.** Every slice has an appetite in hours; whenever you have a free hour or two, you pick up the next task. About **250 hours** to gate G3 (M0–M7 add up to about 249).
+**The plan is measured in hours, not weeks.** Every slice has an appetite in hours; whenever you have a free hour or two, you pick up the next task. About **257 hours** to gate G3 (M0–M7 add up to about 257).
 
 ---
 
@@ -40,7 +38,7 @@ Each slice issue has a pitch of about ten lines:
 - **No-gos:** what this slice won't do.
 - **Done when:** what you'll see on your phone.
 
-Shape with Opus in the project when a slice is new territory; Sonnet builds from the shaped issue.
+Shape with Opus in the project when a slice is new territory; Sonnet builds from the shaped issue. Opus writes every pitch in this format, ready to paste as the issue.
 
 ### 1.3 The circuit breaker
 
@@ -75,7 +73,7 @@ A GitHub Projects board with four columns: **Later**, **Next** (shaped, ready), 
 
 ### 1.6 Cool-down after each milestone (1–2 sessions)
 
-No new features. Fix the bugs in Later that matter; refactor what hurt; update the docs from what you learned (a behaviour that differs from the Systems Detail is either a bug or a doc change, decided on purpose); write ADRs; regenerate fixtures; reshape the next milestone's slices.
+No new features. Fix the bugs in Later that matter; refactor what hurt; update the docs from what you learned (a behaviour that differs from the Systems Detail is either a bug or a doc change, decided on purpose); write ADRs; regenerate fixtures; reshape the next milestone's slices. **Refresh the repo's `docs/` snapshots:** Opus hands over each project doc that changed since the last refresh (Systems Detail, Development Plan, Software Design), with the snapshot line redated, and you commit them as `docs: refresh snapshots`. (Decided 27 Nov 2026; at the M1 cool-down, revisit whether the repo should become the master copy, synced into the project.)
 
 ### 1.7 Every ~5 sessions: a 15-minute review
 
@@ -110,7 +108,7 @@ For each task:
 
 **Rules for Sonnet** (also in `CLAUDE.md`): never edit a test or fixture to make code pass without asking; nothing in JBCore imports SwiftUI or UIKit, reads the clock, uses `random()` or touches files; no new dependencies; one task per conversation (clear between tasks); use Plan mode for anything touching more than three files.
 
-**Opus designs** (here, in the project): shaping new slices, design questions, reviewing a slice's approach before a big build, reading bot reports and tuning, and every doc change. If something changes the GDD, it goes through the project first.
+**Opus designs** (here, in the project): shaping new slices, design questions, reviewing a slice's approach before a big build, reading bot reports and tuning, and every doc change. Opus proposes each doc edit and applies it after your OK. If something changes the GDD, it goes through the project first.
 
 ---
 
@@ -123,11 +121,11 @@ Hours are appetites. Each milestone lists its slices, what gets tested, and how 
 | Slice | Appetite | What | Key tests |
 | --- | --- | --- | --- |
 | S0.1 Repo and tooling | 3 h | `Packages/JBCore` with its six targets and test targets, linked to the app; `CLAUDE.md`, `NEXT.md`, `docs/` copies, `docs/adr/0001` and `0007`; `scripts/check.sh`; GitHub Actions on every push and pull request: core tests on Linux, app build on macOS | One trivial test per target; core tests green on Linux; app job green |
-| S0.2 Globe spike | 6 h (breaker 8 h) | Natural Earth 110m coastlines → `coastlines.json`; SwiftUI Canvas orthographic globe; drag to rotate, pinch to zoom; one great-circle arc; one range ring; switch between two color themes | Projection math unit tests; frame time measured on your iPhone |
+| S0.2 Globe spike | 6 h (breaker 8 h) | Natural Earth 110m coastlines → `coastlines.json`; SwiftUI Canvas orthographic globe; drag to rotate, pinch to zoom; one great-circle arc; one range ring; switch between two color themes | Projection math unit tests in JBGeo (Linux CI); the G0 stress scene measured on your iPhone |
 | S0.3 Data v0 | 4 h | `build_world.py` for 60 North Atlantic airports; `build_landmask.py`; JBWorld decodes them | pytest data checks; decode test |
 | S0.4 Walking skeleton | 6 h | Tap two airports → `createRoute` → a dot flies the great circle → cash ticks by a placeholder profit through `Engine.advance` → save and reload | `apply(createRoute)`; `advance` raises cash; save round trip; split-advance invariant |
 
-**Gate G0 (decision):** does the Canvas globe hold 60 fps (≤ 8 ms per frame) on your phone with coastlines, 20 arcs and a ring? Yes → ADR 0002 accepts Canvas. No → up to 4 h trying Metal, then decide. Also confirm the minimum iOS version.
+**Gate G0 (decision):** does the Canvas globe hold 60 fps (≤ 8 ms per frame) on your test iPhone (iPhone 13) with coastlines, 20 arcs and a ring? Measured in a Release build on the phone with a stress scene (coastlines, 20 arcs, ring, auto-spin, at 1x and 4x zoom) plus a 30 s Instruments Animation Hitches run. Pass: p95 draw time ≤ 8 ms and no hitches [tune]. iPhone model, refresh rate and iOS version go in ADR 0002. (Decided 27 Nov 2026.) Yes → ADR 0002 accepts Canvas. No → up to 4 h trying Metal, then decide. Also confirm the minimum iOS version.
 
 ### M1 — The range puzzle, grey box, North Atlantic (~35 h)
 
@@ -141,11 +139,12 @@ Hours are appetites. Each milestone lists its slices, what gets tested, and how 
 
 **Ends with:** a cool-down. You can crack Shannon–Gander westbound by fitting extra tanks.
 
-### M2 — Money, time away, and the first fun test (~42 h)
+### M2 — Money, time away, and the first fun test (~48 h)
 
 | Slice | Appetite | What | Key tests |
 | --- | --- | --- | --- |
-| S2.1 Demand and fares | 7 h | Pair demand, surface links, world multiplier, fares (6.1, 6.2, 6.8) | Golden values from the sheet export |
+| S2.0 Balance model | 6 h | Rebuild `tools/balance/` (`net.py`, `tests.py`, `starts.py`) in Python from Systems Detail 6–7 and the Findings doc's rules; reproduce the Findings tables (Sydney, Cairo, first hour) within 5% before changing anything, then apply ×1.7 fares, 1.0→5.0 and the history-airline share; `export_fixtures.py`; ADR 0009. The original model was lost with the session that made it | pytest: the Findings tables reproduce; fixtures export and load in JBCore tests |
+| S2.1 Demand and fares | 7 h | Pair demand, surface links, world multiplier, fares (6.1, 6.2, 6.8) | Golden values from the balance-model fixtures |
 | S2.2 Filling seats | 10 h (breaker 14 h) | Nonstop, through and transfer allocation; 85% cap (6.6) | **Parity** with `net.py` on the Sydney and Cairo scenarios |
 | S2.3 Costs and the cash floor | 4 h | Running costs, landing fees, pause worst route first, resume (7.1, 7.4) | Cash never below zero; New York–Philadelphia 1 vs 3 Dakotas |
 | S2.4 The integrator and time away | 7 h | Breakpoints, exact integration, background mode (1.3) | One big advance = many small ones; 30 days away ≤ 200 ms |
@@ -191,22 +190,22 @@ Hours are appetites. Each milestone lists its slices, what gets tested, and how 
 
 **Rehearsal R2 (free, 1–2 weeks; replaces the former gate G2):** only after the bots hit their targets. The friends' two-week test needs their own phones, so it moves into G3's first wave (section 8). Here you play the build on your own iPhones as an ordinary player, with the playtest journal on, then replay the journals. Measure: check-ins with nothing worth deciding; crashes and save problems; pacing against the typical bot; anything on screen that contradicts the route card. It can't measure unprompted return, because you're the player. **Decision rule:** if more than 1 check-in in 10 had nothing worth deciding (the fast bot's target), or the calendar stalled, reshape in the cool-down before any art (M6). Then a cool-down.
 
-### M6 — Look, sound and the first session (~30 h)
+### M6 — Look, sound and the first session (~31 h)
 
 | Slice | Appetite | What |
 | --- | --- | --- |
 | S6.1 Style bible and theme | 6 h | Mid-century style bible (Draft 1 art rules below); `EraTheme` |
-| S6.2 Globe art pass | 8 h | Coastlines, airports as symbols, route lines, the ring, the date stamp in style |
+| S6.2 Globe art pass | 9 h | Coastlines, airports as symbols, route lines, the ring, the date stamp in style; app icon draft from the style bible (AI art, section 7) |
 | S6.3 Card and screen art pass | 6 h | Cards, workshop, hangar, morning edition, front pages |
 | S6.4 Sound and haptics | 4 h | One sound and one haptic per event kind |
 | S6.5 First session | 6 h | The first session for all seven starts (Systems Detail 14) |
 
-### M7 — Challenges, saves and polish (~27 h)
+### M7 — Challenges, saves and polish (~28 h)
 
 | Slice | Appetite | What |
 | --- | --- | --- |
 | S7.1 Challenges | 12 h | Challenge mode ("Run a month") and the three Era 3 challenges (15) |
-| S7.3 Accessibility and performance | 5 h | VoiceOver list view, Dynamic Type, Reduce Motion; all performance budgets |
+| S7.3 Accessibility and performance | 6 h | VoiceOver list view, Dynamic Type, Reduce Motion; all performance budgets; app icon exported at every size |
 | **Pay point** | 2 h | Buy the membership (section 8): enrol a week ahead, run the ready-to-pay checklist, set the team, register the App Store bundle ID, first TestFlight upload from a `pt-<n>` tag |
 | S7.2 iCloud saves | 5 h | iCloud Documents (needs the membership), conflict card, migration tests; the S2.7 export stays as the manual backup |
 | S7.4 External beta prep | 3 h | The five UI flow tests; beta description and review notes; first external build to Beta App Review |
@@ -225,7 +224,7 @@ These are research and design tasks, mostly with Opus in the project. Each must 
 
 | Track | Needed by |
 | --- | --- |
-| Rerun the balance sheet with ×1.7 fares, 1.0→5.0 and the history-airline share; export fixtures | S2.1 |
+| Shape S2.0 from the Findings doc's tables and the Systems Detail numbers | S2.0 |
 | Timetable pass on the *(verify)* airports | S3.1 |
 | History-airline networks for the seven starts | S3.4 |
 | FAA runway curves for real take-off lengths | S3.1 |
@@ -252,10 +251,12 @@ These are research and design tasks, mostly with Opus in the project. Each must 
 
 1. **S0.1a:** add `Packages/JBCore` with six library targets and test targets; one trivial test each; link the package to the app; add `CLAUDE.md`, `NEXT.md` and `docs/`. Push.
 2. **S0.1b:** project fixes (iOS 18, Swift 6, `.dev` bundle ID, shared scheme, untrack `xcuserdata`); `scripts/check.sh`; GitHub Actions `core.yml` (Linux) and `app.yml` (macOS) on every push and pull request; ADRs 0001 and 0007; first green runs.
-3. **S0.2a:** `build_coastlines.py` (Natural Earth 110m → simplified `coastlines.json`); orthographic projection with unit tests; draw the coastlines in a Canvas.
+3. **S0.2a:** `build_coastlines.py` (Natural Earth 110m → simplified `coastlines.json`); orthographic projection and camera in JBGeo with unit tests; draw the coastlines in a Canvas.
 4. **S0.2b:** drag to rotate, pinch to zoom, one great-circle arc New York–London, one range ring; measure frame time on your iPhone.
 5. **S0.2c:** theme switch between two palettes; 20 arcs; decide gate G0 (or start the Metal fallback).
 6. **S0.3:** `build_world.py` for 60 North Atlantic airports, pytest checks, JBWorld decoding test.
+
+Items 3–5 are the three 2 h tasks of S0.2 (6 h, breaker 8 h). (Decided 27 Nov 2026.)
 
 ---
 
@@ -267,11 +268,12 @@ These are research and design tasks, mostly with Opus in the project. Each must 
 | Passenger allocation balloons | Circuit breaker on S2.2; the Python model is the reference, so the target is known |
 | Data research is the long pole | It runs alongside the code, owned in the project, with "needed by" dates |
 | Design changes keep arriving | Only during cool-downs; mid-slice ideas go to Later |
-| AI-written code drifts from the design | Tests first, reviewed by you; fixtures from the sheet; `CLAUDE.md` rules |
+| AI-written code drifts from the design | Tests first, reviewed by you; fixtures from the balance model; `CLAUDE.md` rules |
 | Motivation dips on long stretches | Every slice ends with something visible on your phone; gates give real people's reactions often |
 | Free signing: builds expire after 7 days, 3 apps per device | Reinstall over the app, never delete it; the away cap makes a lapse harmless; export a save before each reinstall |
 | The bundle ID stays stuck on the Personal Team after enrolling, so saves start empty | Free builds use `.dev`; the App Store ID is never used before enrolling; save export and import bridges any change |
 | Art and polish (M6–M7) built before any outside retention signal, because G2 moved into G3 | The bots and rehearsal R2 gate M6; G3's day-7 circuit breaker on wave A catches the rest before wave B |
+| Numbers drift between the sheet, the docs and the code | One master at a time (GDD, Where numbers live); fixtures come only from the balance model |
 | The CI runner's Xcode lags your local Xcode | `scripts/check.sh` is the gate; the app job can run manually until the runner image catches up |
 
 ---
@@ -311,7 +313,7 @@ Decided 26 Nov 2026. Felipe builds with a free Apple Account (Xcode's Personal T
 - **Bundle IDs:** free builds use `com.felipecastellanos.JustBeyond.dev`. The App Store ID is registered only after enrolling. If Apple reports it as taken by the Personal Team, ask Developer Support to release it or choose another; testers carry their saves across with export.
 - **G2 moved into G3.** A friends' test over two weeks needs their own phones, so it needs TestFlight. Rather than pay before the art, rehearsal R2 checks the loop for free at the end of M5, and G3 starts with the old G2 group as wave A, with a day-7 circuit breaker.
 
-**The pay point:** once S7.1 and S7.3 are done (about 240 hours in), enrolling about a week before you want S7.2 and G3 to start (enrolment and the first Beta App Review can take days). From then on it's needed for S7.2 (iCloud), S7.4 and G3 (TestFlight), and everything after this plan (Game Center, In-App Purchase, App Store). Buying it then starts the $99 year when it's used: it covers G3 and launch.
+**The pay point:** once S7.1 and S7.3 are done (about 247 hours in), enrolling about a week before you want S7.2 and G3 to start (enrolment and the first Beta App Review can take days). From then on it's needed for S7.2 (iCloud), S7.4 and G3 (TestFlight), and everything after this plan (Game Center, In-App Purchase, App Store). Buying it then starts the $99 year when it's used: it covers G3 and launch.
 
 **What nothing before G3 can measure:** whether people come back unprompted. Rehearsal R2 and the bots cover pacing, crashes and days with nothing to decide; only G3's wave A answers the return question.
 
