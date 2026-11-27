@@ -24,3 +24,7 @@ func limbPointsLieOnTheUnitCircle(point: LatLon) {
     #expect(abs((p.x * p.x + p.y * p.y).squareRoot() - 1) < 1e-12)
     #expect(abs(p.depth) < 1e-12)
 }
+
+@Test func antipodeIsHidden() {
+    #expect(atOrigin.project(LatLon(latDeg: 0, lonDeg: 180)).depth < 0)
+}
