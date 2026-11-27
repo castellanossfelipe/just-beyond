@@ -43,3 +43,9 @@ private func radius(_ p: ProjectedPoint) -> Double {
     #expect(abs(radius(start) - 1) < 1e-9)
     #expect(abs(start.depth) < 1e-9)
 }
+
+@Test(arguments: [[Double](), [0], [180]])
+func lineWithFewerThanTwoPointsDrawsNothing(lonsDeg: [Double]) {
+    let line = lonsDeg.map { LatLon(latDeg: 0, lonDeg: $0).unitVector }
+    #expect(view.visiblePieces(of: line).isEmpty)
+}
