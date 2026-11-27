@@ -1,5 +1,8 @@
 import json
+import math
 from pathlib import Path
+
+import pytest
 
 import build_coastlines
 
@@ -50,3 +53,26 @@ def test_build_is_deterministic(tmp_path):
         build_coastlines.build(source, output)
         outputs.append(output.read_bytes())
     assert outputs[0] == outputs[1]
+
+
+def test_every_line_has_at_least_two_points():
+    lines = load()["lines"]
+    assert lines
+    assert all(len(line) >= 2 for line in lines)
+
+
+def test_file_is_under_2_mb():
+    assert OUTPUT.stat().st_size < 2 * 1024 * 1024
+
+
+def km_between(a, b):
+    (lon1, lat1), (lon2, lat2) = [[math.radians(v) for v in p] for p in (a, b)]
+    h = (math.sin((lat2 - lat1) / 2) ** 2
+         + math.cos(lat1) * math.cos(lat2) * math.sin((lon2 - lon1) / 2) ** 2)
+    return 2 * 6371 * math.asin(math.sqrt(h))
+
+
+@pytest.mark.parametrize("city", [(-17.45, 14.69), (18.42, -33.92), (151.21, -33.87)],
+                         ids=["Dakar", "Cape Town", "Sydney"])
+def test_lon_lat_order_not_swapped(city):
+    assert min(km_between(city, point) for point in points()) < 200
