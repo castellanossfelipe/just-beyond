@@ -64,3 +64,12 @@ func nearsideDepthIsPositive(point: LatLon) {
     #expect(abs(east.y - west.y) < 0.01)
     #expect(west.depth > 0 && east.depth > 0)
 }
+
+@Test(arguments: [90.0, -90])
+func centreOnAPoleStillProjectsToFiniteNumbers(latDeg: Double) {
+    let view = OrthographicProjection(centre: LatLon(latDeg: latDeg, lonDeg: 37))
+    for point in [LatLon(latDeg: 90, lonDeg: 0), LatLon(latDeg: 0, lonDeg: 120), LatLon(latDeg: -90, lonDeg: 0)] {
+        let p = view.project(point)
+        #expect(p.x.isFinite && p.y.isFinite && p.depth.isFinite)
+    }
+}
