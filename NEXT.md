@@ -1,1 +1,1 @@
-S0.1b done (free-account CI: core.yml on Linux and app.yml on macOS green; .dev bundle ID; ADRs 0001 and 0007). First, on the Mac: pull, open the project, run the .dev build on your iPhone (delete the old-ID app first; nothing to keep yet). Next: S0.2a, build_coastlines.py and the first projection test.
+S0.1b done and checked on device. Next: S0.2a, build_coastlines.py and the first projection test.
