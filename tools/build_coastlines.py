@@ -13,7 +13,7 @@ OUTPUT = ROOT / "App/Resources/World/coastlines.json"
 
 def build(source, output):
     features = json.loads(source.read_text())["features"]
-    lines = [features[0]["geometry"]["coordinates"]]
+    lines = [feature["geometry"]["coordinates"] for feature in features]
     data = {"source": "Natural Earth ne_110m_coastline v5.1.2 (public domain)",
             "scale": "110m", "lines": lines}
     output.parent.mkdir(parents=True, exist_ok=True)
