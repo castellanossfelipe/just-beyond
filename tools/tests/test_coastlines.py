@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import build_coastlines
+
 OUTPUT = Path(__file__).resolve().parents[2] / "App/Resources/World/coastlines.json"
 
 
@@ -34,3 +36,17 @@ def test_coordinates_are_rounded_to_two_decimals():
     for lon, lat in points():
         assert lon == round(lon, 2)
         assert lat == round(lat, 2)
+
+
+def test_build_is_deterministic(tmp_path):
+    features = [{"type": "Feature", "geometry": {"type": "LineString", "coordinates": line}}
+                for line in ([[10.001, 20.0], [11.0, 21.0]], [[-5.0, 0.0], [-6.0, 1.0]])]
+    outputs = []
+    # The second run sees the same lines in another order: the output must not care.
+    for run, order in enumerate((features, features[::-1])):
+        source = tmp_path / f"in{run}.geojson"
+        source.write_text(json.dumps({"type": "FeatureCollection", "features": order}))
+        output = tmp_path / f"out{run}.json"
+        build_coastlines.build(source, output)
+        outputs.append(output.read_bytes())
+    assert outputs[0] == outputs[1]
