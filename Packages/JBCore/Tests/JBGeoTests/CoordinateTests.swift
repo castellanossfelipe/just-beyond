@@ -20,3 +20,14 @@ private func expectVector(_ v: Vector3, _ x: Double, _ y: Double, _ z: Double,
 func northPoleIsPlusZ(lonDeg: Double) {
     expectVector(LatLon(latDeg: 90, lonDeg: lonDeg).unitVector, 0, 0, 1)
 }
+
+private let grid: [LatLon] = stride(from: -75.0, through: 75, by: 25).flatMap { lat in
+    stride(from: -170.0, through: 170, by: 20).map { LatLon(latDeg: lat, lonDeg: $0) }
+}
+
+@Test(arguments: grid)
+func latLonRoundTripsThroughUnitVector(point: LatLon) {
+    let back = LatLon(point.unitVector)
+    #expect(abs(back.latDeg - point.latDeg) < 1e-9)
+    #expect(abs(back.lonDeg - point.lonDeg) < 1e-9)
+}
