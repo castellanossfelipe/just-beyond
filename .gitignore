@@ -6,3 +6,5 @@ DerivedData/
 .swiftpm/
 __pycache__/
 .venv/
+.pytest_cache/
+tools/cache/
