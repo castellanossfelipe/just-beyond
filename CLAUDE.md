@@ -5,7 +5,7 @@ A light airline tycoon for iPhone on the real globe, Era 3 (1946–57) first. So
 ## Read before working
 - `docs/development-plan.md`: current milestone, slices, framework. The task you're given names its slice (e.g. S2.2).
 - `docs/software-design.md`: architecture, types, testing strategy. Follow it.
-- `docs/systems-detail.md`: exact formulas and behaviours, by section number. **Master for behaviour.** If the task and this doc disagree, stop and ask.
+- `docs/systems-detail.md`: exact formulas, behaviours and numbers, by section number. **Master for behaviour and numbers** (once `tools/balance/` exists, expected numbers come from its fixtures in `Tests/Fixtures/`). If the task and this doc disagree, stop and ask.
 - `NEXT.md`: where the last session stopped.
 Read only the sections the task points to.
 

@@ -1,14 +1,15 @@
-> **Snapshot of the Project doc "Just Beyond – Era 3 Systems Detail", dated 26 Nov 2026.** The Project is the source of truth. Edit it there, then re-copy here (refresh at each milestone cool-down).
+> **Snapshot of the Project doc "Just Beyond – Era 3 Systems Detail", dated 27 Nov 2026.** The Project is the source of truth. Edit it there, then re-copy here (refresh at each milestone cool-down).
 
 # Just Beyond – Era 3 Systems Detail
 
-Draft 1 · 25 Nov 2026 (26 Nov: `maxStops` is a playtest setting, 5.1 and 14) · Companion to the Era 3 Crossroads Spec. The Spec says *what* each system is and *why*; this doc says **exactly how it behaves**, so it can be coded and tested. The Software Design doc says how it's built.
+Draft 2 · 25 Nov 2026 (26 Nov: `maxStops` is a playtest setting, 5.1 and 14; **27 Nov: this doc is now master for numbers**, and the number conflicts with the Balance Sheet are settled) · Companion to the Era 3 Crossroads Spec. The Spec says *what* each system is and *why*; this doc says **exactly how it behaves**, so it can be coded and tested. The Software Design doc says how it's built.
 
 **How to read the numbers**
 
-- **[tune]** = a starting value. The **Era 3 Balance Sheet is master for numbers**; where they differ, the sheet wins and this doc gets updated.
+- **[tune]** = a starting value, to be set by the bots.
+- **This doc is master for numbers** until the balance model in `tools/balance/` is rebuilt (Development Plan, S2.0). From then on the model is master and this doc is updated from it. The Era 3 Balance Sheet is a tuning view only, never a source. (Decided 27 Nov 2026.)
 - **[V]** = checked against a source; **[U]** = unverified; *(verify)* = needs a source before it ships.
-- **This doc is master for formulas and behaviour.** If code and this doc disagree, one of them is a bug: fix it or change the doc on purpose.
+- **This doc is also master for formulas and behaviour.** If code and this doc disagree, one of them is a bug: fix it or change the doc on purpose.
 - Every rule here should become at least one test. Section 17 lists the golden tests.
 
 ---
@@ -86,37 +87,39 @@ The tables live in the airports data and are curated by hand; rule 1 is automati
 
 ### 3.1 Types (Era 3)
 
-| Type | Engines | Seats | Still-air range | Cruise | Runway need (sea level) | Pressurized | Arrives |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Dakota | 2 | 21 | 1,500 km | 270 km/h | 1,000 m [tune] | No | 1946 (start) |
-| Skymaster | 4 | 44 | 3,400 km | 360 km/h | 1,600 m [tune] | No | 1946 |
-| Connie | 4 | 60 | 3,900 km | 480 km/h | 1,800 m [tune] | Yes | 1946–47 |
-| Liner | 2 | 40 | 1,200 km | 440 km/h | 1,300 m [tune] | Yes | 1948 |
-| Whisper | 4 | 48 | 1,800 km | 510 km/h | 1,500 m [tune] | Yes | Apr 1953 |
-| Seven Seas | 4 | 90 | 6,500 km | 550 km/h | 1,940 m [U] | Yes | Jun 1956 |
+| Type | Engines | Seats | Still-air range | Cruise | Runway need (sea level) | Pressurized | Arrives | Price (new) | Running cost per fh |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Dakota | 2 | 21 | 1,500 km | 270 km/h | 1,000 m [tune] | No | 1946 (start) | $120,000 | $150 |
+| Skymaster | 4 | 44 | 3,400 km | 360 km/h | 1,600 m [tune] | No | 1946 | $900,000 | $420 |
+| Connie | 4 | 60 | 3,900 km | 480 km/h | 1,800 m [tune] | Yes | 1946–47 | $2,400,000 | $620 |
+| Liner | 2 | 40 | 1,200 km | 440 km/h | 1,300 m [tune] | Yes | 1948 | $1,200,000 | $330 |
+| Whisper | 4 | 48 | 1,800 km | 510 km/h | 1,500 m [tune] | Yes | Apr 1953 | $1,800,000 | $470 |
+| Seven Seas | 4 | 90 | 6,500 km | 550 km/h | 1,940 m [U] | Yes | Jun 1956 | $4,500,000 | $900 |
 
-Prices and running costs per flight hour (fuel, crew) come from the balance sheet. The exact unlock day of each type is in the era file.
+Prices and running costs (fuel and crew per flight hour) are [tune]. The Seven Seas runway need is 1,940 m, close to the real DC-7C (decided 27 Nov 2026; the sheet's 2,100 m is retired). The exact unlock day of each type is in the era file.
 
 ### 3.2 Part slots
 
 Each plane has four slots. Each option is a trade-off; none is strictly better (Principle 3).
 
-| Slot | Option | Effect [tune] | Key |
-| --- | --- | --- | --- |
-| Wings | Standard | — | Start |
-| | Long-span | Range ×1.08, runway need ×1.15 | Start |
-| | Short-field | Runway need ×0.75, cruise ×0.95, range ×0.95 | 1947 |
-| Engines | Standard | — | Start |
-| | Power | Cruise ×1.08, runway need ×0.90, fuel cost ×1.15 | 1947 |
-| | Economy | Cruise ×0.95, range ×1.06, fuel cost ×0.90 | 1948 |
-| Tanks | Standard | — | Start |
-| | Extra tanks | Range ×1.12, seats ×0.90 | Start |
-| | Ferry tanks | Range ×1.25, seats ×0.75 | 1949 |
-| Cabin | Standard | — | Start |
-| | Sleeper berths | Seats ×0.6; comfort +2 on legs over 8 fh | Start (pressurized types only) |
-| | Tourist class | Seats ×1.2; comfort −1; fares ×0.8 | Milestone A10 |
-| | Freighter | No passengers; cargo capacity = base seats × 0.1 t | Engineering "Conversion line", or 1950 |
-| | Combi | Half seats, half cargo | 1950 |
+| Slot | Option | Effect [tune] | Price × [tune] | Key |
+| --- | --- | --- | --- | --- |
+| Wings | Standard | — | 1.00 | Start |
+| | Long-span | Range ×1.08, runway need ×1.15 | 1.05 | Start |
+| | Short-field | Runway need ×0.75, cruise ×0.95, range ×0.95 | 1.05 | 1947 |
+| Engines | Standard | — | 1.00 | Start |
+| | Power | Cruise ×1.08, runway need ×0.90, fuel cost ×1.15 | 1.10 | 1947 |
+| | Economy | Cruise ×0.95, range ×1.06, fuel cost ×0.90 | 1.00 | 1948 |
+| Tanks | Standard | — | 1.00 | Start |
+| | Extra tanks | Range ×1.12, seats ×0.90 | 1.03 | Start |
+| | Ferry tanks | Range ×1.25, seats ×0.75 | 1.05 | 1949 |
+| Cabin | Standard | — | 1.00 | Start |
+| | Sleeper berths | Seats ×0.6; comfort +2 on legs over 8 fh | 1.05 | Start (pressurized types only) |
+| | Tourist class | Seats ×1.2; comfort −1; fares ×0.8 | 1.00 | Milestone A10 |
+| | Freighter | No passengers; cargo capacity = base seats × 0.1 t | 1.00 | Engineering "Conversion line", or 1950 |
+| | Combi | Half seats, half cargo | 1.00 | 1950 |
+
+A plane's price = type price × the product of its parts' price multipliers. These effects replace the Balance Sheet's Parts tab, which differs on eight values (decided 27 Nov 2026).
 
 - Multipliers stack by multiplying. Seats round down.
 - **Extra tanks** gives the +11% on Wake–Tokyo the balance sheet found (−1% stock) [V against sheet].
@@ -221,8 +224,9 @@ D(i,j,year) = K
             + tourism and identity terms (6.3)
 ```
 
-- `K` is the calibration constant from the balance sheet.
+- `K` = 8,000, with populations in millions [tune].
 - `airShare`: fastRail rises linearly from 0 at 0 km to 1 at 800 km; slow from 0 at 0 km to 1 at 400 km; none = 1.
+- A `slow` link gets no fare or demand boost; only `none` does. (Decided 27 Nov 2026; the sheet's "slow counts as half of none" is retired.)
 - `world(year)` is a table in the era file, interpolated within the year.
 - Demand is the same in both directions.
 - Refuel-only (R) airports have `P = 0`.
@@ -279,7 +283,7 @@ Within each step, pairs are loaded largest first. A passenger who doesn't fit is
 
 - Each pair also has a cargo-and-mail demand in tonnes per year: `0.02 t × passenger demand` [tune], ×2 if either end is a Free port with Bonded warehouses.
 - Carried only by Freighter or Combi cabins, or in a small belly hold: every passenger plane carries 0.5 t per leg of mail [tune].
-- Fare per tonne-km is in the sheet; Mail exchange raises mail fares through that city by 30%.
+- Fare per tonne-km is [tune], set in S2.0; Mail exchange raises mail fares through that city by 30%.
 - Cargo exists so Free port, Combi, Freighter and special loads mean something. It is never a separate job list.
 
 ### 6.8 Fares
@@ -289,6 +293,7 @@ fare(pair) = base + rate × (landKm + 1.7 × waterKm)        if surfaceLink != n
            = (base + rate × distance) × 1.7                if surfaceLink == none
 ```
 
+- `base` = $25, `rate` = $0.07 per km [tune].
 - Tourist class ×0.8.
 - Through and transfer passengers pay the fare of their own pair (the great-circle distance), split across the legs they fly in proportion to leg distance.
 - **Hotel** (Hospitality tier 2): passengers who stop or connect there pay a stopover fare of 5% extra [tune], credited to that city.
@@ -301,7 +306,7 @@ fare(pair) = base + rate × (landKm + 1.7 × waterKm)        if surfaceLink != n
 
 ### 7.1 Costs
 
-Per route, per fh: Σ planes × (fuel + crew per fh of their design) + Σ landings per fh × landing fee. Landing fee = sheet value × (1 + 0.1 × city level). Repair shed: −15% running cost for planes based there [tune]. Fuel farm: −20% fuel for legs departing there [tune].
+Per route, per fh: Σ planes × (fuel + crew per fh of their design) + Σ landings per fh × landing fee. Landing fee = ($40 + $1 per seat) × (1 + 0.1 × city level) [tune]. Repair shed: −15% running cost for planes based there [tune]. Fuel farm: −20% fuel for legs departing there [tune].
 
 ### 7.2 Profit display
 
@@ -429,7 +434,7 @@ threshold(year) = baseThreshold(year) × startScale
 startScale = max(1, startNetworkSeatsPerFh / freshStartSeatsPerFh)
 ```
 
-- `baseThreshold(year)` is passengers per game year, a table in the era file from the balance sheet, rising each year so a player who stops growing slows down.
+- `baseThreshold(year)` is passengers per game year, a table in the era file, set by the bots [tune], rising each year so a player who stops growing slows down.
 - `startNetworkSeatsPerFh` is measured once, when the era begins. A fresh start has `startScale = 1`.
 
 ### 11.2 Dated content
@@ -542,19 +547,19 @@ Each start has its own data for steps 3–4: its first good route and its first 
 
 ## 17. Golden tests
 
-These come straight from the research and the balance sheet, and must pass in the Swift code. Expected values are exported from the sheet and the Python model into test fixtures, so when the sheet changes, the fixtures are regenerated, not hand-edited.
+These come straight from the research and must pass in the Swift code. Expected values are exported by the balance model (`tools/balance/`, Development Plan S2.0) into test fixtures, so when the model changes, the fixtures are regenerated, not hand-edited. Until the model exists, the values below are the targets.
 
-| Test | Expected (current sheet) |
+| Test | Expected (current values) |
 | --- | --- |
 | Recife–Dakar, stock Skymaster, worst direction | +4% margin |
 | Aden–Bombay, stock Skymaster, worst direction | +10% |
 | Wake–Tokyo, stock Skymaster, into the wind | −1%; with extra tanks +11% |
 | Nairobi–Salisbury, Dakota / Skymaster | −24% / +72% |
-| Seven Seas at Kai Tak (1,664 m), before 1958 | About 79% range (Runways tab) |
+| Seven Seas at Kai Tak (1,664 m), before 1958 | About 86% range (1,664 ÷ 1,940) |
 | Connie at Johannesburg Palmietfontein, 1950 | Usable, lighter (between 70% and 100%) |
 | Bermuda from New York, Dakota | Inside range, outside the 60-minute band |
 | New York–Philadelphia: 1 Dakota vs 3 Dakotas | Profit falls to a loss per plane (sheet: $149/h vs −$89/h before the new rules; refresh) |
-| Sydney: Skymaster Sydney–Auckland alone vs Melbourne–Sydney–Auckland line | Loss vs profit (model: −$60/h vs +$412/h; refresh) |
+| Sydney: Skymaster Sydney–Auckland alone vs Melbourne–Sydney–Auckland line | Loss vs profit (model: −$60/h vs +$412/h; Findings doc section 3, the parity target until the model is rebuilt; refresh) |
 | Every start, 1946, starting plane | At least 2 routes earning $100+ per fh |
 | Advancing 10 h at once vs ten 1-h steps | Identical state |
 | 30 days away | Calendar holds at the next stop date; cash ≥ 0; nothing sold |
@@ -563,7 +568,7 @@ These come straight from the research and the balance sheet, and must pass in th
 
 ## 18. Open items
 
-- [ ] Prices and running costs per type: confirm the sheet values and export them
+- [ ] Rebuild the balance model (Development Plan, S2.0), apply ×1.7 fares, 1.0→5.0 and the history-airline share, and export fixtures
 - [ ] Level thresholds, flight capacity, charter pay and the liner curve: tune with the bots
 - [ ] Airlift minimum daily tonnage and the 1947 Kangaroo stop list *(verify)*
 - [ ] Hot-airport flags for all 166 airports
