@@ -14,3 +14,13 @@ private let atOrigin = OrthographicProjection(centre: LatLon(latDeg: 0, lonDeg: 
     #expect(abs(p.x) < 1e-12)
     #expect(abs(p.y - 0.5) < 1e-12)
 }
+
+@Test(arguments: [
+    LatLon(latDeg: 0, lonDeg: 90), LatLon(latDeg: 0, lonDeg: -90),
+    LatLon(latDeg: 90, lonDeg: 0), LatLon(latDeg: -90, lonDeg: 0),
+])
+func limbPointsLieOnTheUnitCircle(point: LatLon) {
+    let p = atOrigin.project(point)
+    #expect(abs((p.x * p.x + p.y * p.y).squareRoot() - 1) < 1e-12)
+    #expect(abs(p.depth) < 1e-12)
+}
