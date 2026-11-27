@@ -15,6 +15,7 @@ def build(source, output):
     features = json.loads(source.read_text())["features"]
     lines = [[[round(lon, 2), round(lat, 2)] for lon, lat in feature["geometry"]["coordinates"]]
              for feature in features]
+    lines.sort()
     data = {"source": "Natural Earth ne_110m_coastline v5.1.2 (public domain)",
             "scale": "110m", "lines": lines}
     output.parent.mkdir(parents=True, exist_ok=True)
