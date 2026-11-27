@@ -10,8 +10,13 @@ public struct LatLon: Codable, Equatable, Sendable {
         self.lonDeg = lonDeg
     }
 
+    public init(_ vector: Vector3) {
+        self.init(latDeg: 0, lonDeg: 0)
+    }
+
     public var unitVector: Vector3 {
         let lon = lonDeg * .pi / 180
-        return Vector3(x: cos(lon), y: sin(lon), z: 0)
+        let lat = latDeg * .pi / 180
+        return Vector3(x: cos(lat) * cos(lon), y: cos(lat) * sin(lon), z: sin(lat))
     }
 }
