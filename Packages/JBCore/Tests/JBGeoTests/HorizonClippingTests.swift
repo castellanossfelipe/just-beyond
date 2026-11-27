@@ -20,3 +20,12 @@ private func radius(_ p: ProjectedPoint) -> Double {
 @Test func lineOnTheFarSideDrawsNothing() {
     #expect(view.visiblePieces(of: equator(150, 180, -150)).isEmpty)
 }
+
+@Test func lineCrossingTheHorizonEndsOnTheLimb() throws {
+    let pieces = view.visiblePieces(of: equator(60, 80, 110, 130))
+    try #require(pieces.count == 1)
+    #expect(pieces[0].count == 3)
+    let end = try #require(pieces[0].last)
+    #expect(abs(radius(end) - 1) < 1e-9)
+    #expect(abs(end.depth) < 1e-9)
+}
