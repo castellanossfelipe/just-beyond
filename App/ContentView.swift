@@ -1,23 +1,16 @@
-//
-//  ContentView.swift
-//  JustBeyond
-//
-//  Created by Felipe on 11/25/26.
-//
-
+import JBGeo
 import SwiftUI
-import JBSim
 
 struct ContentView: View {
+    @State private var scene = GlobeScene(coastlines: Coastlines.load())
+    private let renderer = CanvasGlobeRenderer()
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-            Text(JBSim.moduleName)
-        }
-        .padding()
+        // A fixed view over the North Atlantic until the camera arrives (S0.2b).
+        renderer.view(of: scene, centre: LatLon(latDeg: 30, lonDeg: -40))
+            .background(.white)
+            .ignoresSafeArea()
+            .accessibilityLabel("Globe")
     }
 }
 
