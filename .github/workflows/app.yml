@@ -1,0 +1,33 @@
+name: app
+
+# The iPhone app, built for the simulator with signing off (ADR 0007).
+# Uses the standard xcode-27 runner, which is free on a public repo
+# (the -xlarge variant is billed even on public repos).
+on:
+  push:
+    branches: [main]
+    tags: ['pt-*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: xcode-27
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - run: xcodebuild -version
+      - name: Build for the simulator (unsigned)
+        # Switch to `xcodebuild test` with a named simulator once AppTests exists.
+        run: |
+          xcodebuild build -project JustBeyond.xcodeproj -scheme JustBeyond \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO

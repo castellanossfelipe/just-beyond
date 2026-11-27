@@ -1,8 +1,8 @@
-> **Snapshot of the Project doc "Just Beyond – Software Design", dated 25 Nov 2026.** The Project is the source of truth. Edit it there, then re-copy here (refresh at each milestone cool-down).
+> **Snapshot of the Project doc "Just Beyond – Software Design", dated 26 Nov 2026.** The Project is the source of truth. Edit it there, then re-copy here (refresh at each milestone cool-down).
 
 # Just Beyond – Software Design (Era 3 test rollout)
 
-Draft 1 · 25 Nov 2026 · For Felipe and Claude Sonnet while coding. **What the game does** is in the GDD, the Era 3 Crossroads Spec and the **Era 3 Systems Detail** (formulas). **What gets built when** is in the Development Plan. This doc is **how it's built**. Copy it into the repo as `docs/software-design.md`; the repo copy is what Sonnet reads.
+Draft 2 · 26 Nov 2026 · For Felipe and Claude Sonnet while coding. Built on a free Apple Account until late M7 (Development Plan 8). **What the game does** is in the GDD, the Era 3 Crossroads Spec and the **Era 3 Systems Detail** (formulas). **What gets built when** is in the Development Plan. This doc is **how it's built**. Copy it into the repo as `docs/software-design.md`; the repo copy is what Sonnet reads.
 
 ---
 
@@ -14,7 +14,7 @@ Draft 1 · 25 Nov 2026 · For Felipe and Claude Sonnet while coding. **What the 
 | **Testable without the app** | TDD, fast feedback, safer AI-written code | The rules live in a plain Swift package with no UI imports |
 | **Data, not code, for content** | Eras 1, 2, 4–6 later should be mostly new data | Airports, planes, parts, milestones, events and text templates are JSON |
 | **Never destroy what the player built** | Principle 7 | Saves are versioned with migrations; the simulation has no "delete" for player-built things except by player command |
-| **Offline, no server** | Cost and simplicity | Everything runs on the phone; saves are local (iCloud later) |
+| **Offline, no server** | Cost and simplicity | Everything runs on the phone; saves are local, with a file you can export and import (iCloud after the paid membership) |
 | **One person, a few hours at a time** | Real constraint | Few moving parts, no third-party runtime dependencies, every task ≤ 2 hours |
 
 ---
@@ -59,6 +59,8 @@ Following Gary Bernhardt's "functional core, imperative shell" pattern: the core
 JustBeyond/                         (git root, GitHub)
 ├─ CLAUDE.md                        rules for Claude Code (Sonnet)
 ├─ NEXT.md                          one line: where the last session stopped
+├─ .github/workflows/               core.yml (Linux) and app.yml (macOS), on every push and pull request
+├─ scripts/check.sh                 run before every push: core tests, then the app build and tests
 ├─ JustBeyond.xcodeproj
 ├─ App/                             the iPhone app target (shell)
 │  ├─ JustBeyondApp.swift
@@ -203,7 +205,10 @@ Python 3 scripts in `tools/`, run by hand when data changes; outputs are committ
 
 - One JSON file `save.json` in Application Support, written atomically (write to a temp file, then replace), after every command and when the app goes to the background. The last 3 versions are kept as backups.
 - **`schemaVersion`** in every save. Each version bump comes with a migration function `v(n) → v(n+1)` in JBSave and a **golden save file** of the old version in the test fixtures. A test loads every old golden save and checks it migrates and runs. No save is ever discarded because it's old (Principle 7).
-- **iCloud:** after the internal TestFlight (milestone M7), using the iCloud Documents container with last-writer-wins plus a "choose which save" card on conflict.
+- **Export and import** (S2.7): Settings has "Export save", which shares `save.json` through the share sheet (Files, AirDrop, Mail), and "Import save", which validates and migrates a save, keeps the current one as a backup, then loads it. This is the backup before iCloud and the bridge between installs with different bundle IDs or signing teams, so a signing change never costs a player their airline.
+- **Playtest journal** (off by default; switched on in the hidden playtest menu, S2.7): the shell appends one JSON line per applied `Command`, per foreground/background change and per launch to `journal.jsonl`, each with sim time, wall time and the build (`pt-<n>` tag and commit). The format lives in JBSave; writing the file lives in the shell. It never leaves the phone unless the tester exports it, so the app still collects no data. Because the core is deterministic, `jb-bots replay journal.jsonl` advances to each entry's sim time and applies it, rebuilding the tester's game exactly; playtest measures (time to first profitable ocean route, check-ins with nothing to decide) are computed from it.
+- **Save I/O behind a small `SaveStore` protocol** in the shell (local file now, iCloud Documents later), so adding iCloud doesn't touch JBSave.
+- **iCloud:** needs the paid membership, bought before S7.2 (Development Plan 8); uses the iCloud Documents container with last-writer-wins plus a "choose which save" card on conflict.
 
 ---
 
@@ -220,6 +225,7 @@ Python 3 scripts in `tools/`, run by hand when data changes; outputs are committ
 - **Accessibility:** Dynamic Type in cards, VoiceOver labels, a list view of airports and routes as the accessible alternative to the globe, Reduce Motion.
 - **Minimum iOS:** 18, confirmed in M0 (raise it if the globe spike needs a newer API).
 - **No third-party runtime dependencies.** Test-only dependencies are allowed with a reason in an ADR.
+- **Signing and Apple services:** free builds are signed with the Personal Team under the bundle ID `com.felipecastellanos.JustBeyond.dev`. No capability that needs the paid membership (iCloud, Game Center, push, In-App Purchase, Sign in with Apple) is added before the membership exists, and each one arrives with an ADR. Game Center, when it comes, mirrors the local `AirlineRecord`; it is never the source of truth and never gates play.
 
 ---
 
@@ -232,15 +238,17 @@ Testing is how the work moves forward, not a phase at the end. Kent Beck's canon
 | **Unit** | Swift Testing (`@Test`, `#expect`) | Every formula and rule in the Systems Detail | Every TDD cycle (seconds) |
 | **Golden** | Swift Testing, parameterized over fixtures | Research numbers (Systems Detail 17): route margins, runway factors, first-hour routes | Every test run |
 | **Parity** | Fixtures exported from the Python model | Passenger allocation and route economics match `net.py` | Every test run |
-| **Invariants** | Swift Testing over 200 seeded random networks (fast mode) | Cash never below 0; same input gives same output; one big advance = many small ones; nothing the player built disappears without a command; the away cap holds | Every test run; 5,000 networks nightly or before a TestFlight |
+| **Invariants** | Swift Testing over 200 seeded random networks (fast mode) | Cash never below 0; same input gives same output; one big advance = many small ones; nothing the player built disappears without a command; the away cap holds | Every test run; 5,000 networks before every tester build |
 | **Save compatibility** | Golden old saves | Every old schema loads and runs | Every test run |
 | **Data** | pytest | Data validity and coverage rules | Every data build |
+| **Portability** | `swift test` on Linux (GitHub Actions) | JBCore uses no Apple-only API, which also guards determinism | Every push |
 | **Simulation bots** | `JBSimBots` | Pacing over a whole era for slow, typical and fast players (section 10) | End of each milestone and after any tuning change |
-| **UI flows** | XCUITest | 5 flows: pick a start; draw a route; buy and design a plane; choose a level-up; fly a charter | Before each TestFlight |
+| **Journal replay** | `jb-bots replay` | A tester's exported journal rebuilds the same `GameState` | Every playtest, and one golden journal in the fixtures |
+| **UI flows** | XCUITest | 5 flows: pick a start; draw a route; buy and design a plane; choose a level-up; fly a charter | Before each tester build |
 | **Snapshots** (optional) | swift-snapshot-testing | Cards at large text sizes | Once cards stop changing (M6+) |
 | **Performance** | XCTest `measure`, Instruments | Globe frame time; `advance` for 30 days away; launch time | End of each milestone |
 | **On-device check** | A checklist on your iPhone | Feel, sound, one-handed reach, the three-tap rule | End of every slice |
-| **Playtests** | People | Is it fun? (Development Plan gates) | G1, G2, G3 |
+| **Playtests** | People | Is it fun? (Development Plan gates and rehearsal) | G1, R2, G3 |
 
 **Rules for tests**
 
@@ -268,15 +276,19 @@ A command-line tool (`swift run jb-bots --start NYC --player fast --days 40`) th
 - **Players:** *slow* (one check-in a day, one decision), *typical* (three check-ins a day), *fast* (hourly while awake, best decision each time), *greedy* (always buys the most profitable next thing).
 - **Decisions** come from a simple strategy: try candidate commands with `Engine.preview` and pick by a score. The bots don't need to be clever, only consistent.
 - **Report:** calendar date against real day; cash; cities by level; goals done; and **"dead check-ins"**: check-ins where no decision was worth taking.
-- **Targets for gate G2:** every start reaches its first ocean-capable plane within 2 real hours (typical bot); a typical bot reaches December 1957 in 24–35 real days; the fast bot has under 10% dead check-ins; nobody's cash curve flattens for more than a game year with nothing to buy.
+- **Targets (they gate rehearsal R2 at the end of M5):** every start reaches its first ocean-capable plane within 2 real hours (typical bot); a typical bot reaches December 1957 in 24–35 real days; the fast bot has under 10% dead check-ins; nobody's cash curve flattens for more than a game year with nothing to buy.
 
 ---
 
 ## 11. CI and builds
 
-- **Locally, always:** `swift test --package-path Packages/JBCore` before every commit (seconds), and the app's tests before every push.
-- **Xcode Cloud** (25 compute hours a month are included with the Apple Developer Program): one workflow builds and tests on every push to `main`; a second, started by a tag `tf-*`, archives and uploads to TestFlight for internal testers.
-- **TestFlight:** internal testers (up to 100 App Store Connect users) first; external testers (up to 10,000) need the first build of each version to pass Beta App Review, so allow a few days.
+- **Locally, always:** `swift test --package-path Packages/JBCore` before every commit (seconds), and `scripts/check.sh` (core tests, then the app build and tests on a simulator, unsigned) before every push. It can be installed as the git pre-push hook.
+- **GitHub Actions** (the repo is public, so GitHub's standard hosted runners are free; checked 26 Nov 2026):
+  - `core.yml`: every push to `main` and every pull request, on Ubuntu in the official Swift container matching local Xcode (Swift 6.4 with Xcode 27.2): `swift test --package-path Packages/JBCore`.
+  - `app.yml`: every push to `main`, every pull request and every `pt-*` tag, and on demand, on the standard `xcode-27` runner (not `xcode-27-xlarge`, which is billed even on public repos): builds the app for the simulator with signing off (and runs the app tests once `AppTests` exists).
+  - Workflows have read-only permissions and no secrets; GitHub's default asks for your approval before a first-time contributor's pull request runs them.
+- **Tester builds before the membership:** built from a `pt-<n>` tag and installed from Xcode on your own devices.
+- **After the membership** (pay point, Development Plan 8): TestFlight uploads, either through Xcode Cloud (25 compute hours a month included) or a GitHub job with an App Store Connect API key stored as a secret, decided then in an ADR. Internal testers (up to 100 App Store Connect users) first; external testers (up to 10,000) need the first build of each version to pass Beta App Review, so allow a few days.
 
 ---
 
@@ -289,6 +301,8 @@ Short files in `docs/adr/`, one per architectural decision: context, decision, c
 | 0001 | Functional core in a Swift package, imperative shell in SwiftUI | Accepted |
 | 0002 | Globe drawn in 2D with Canvas (fallback Metal/RealityKit) | Decided at gate G0 |
 | 0003 | World data as JSON built by Python scripts | Accepted |
-| 0004 | A route is an ordered list of stops; `maxStops` is a build setting | Accepted |
+| 0004 | A route is an ordered list of stops; `maxStops` is a playtest setting chosen at new game | Accepted |
 | 0005 | Time advances by integrating between breakpoints | Accepted |
 | 0006 | No third-party runtime dependencies | Accepted |
+| 0007 | CI on GitHub Actions (Linux core, macOS app); no paid Apple services before the membership | Accepted |
+| 0008 | Save export and import, and a deterministic playtest journal | Accepted |
