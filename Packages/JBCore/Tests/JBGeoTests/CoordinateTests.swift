@@ -11,3 +11,7 @@ private func expectVector(_ v: Vector3, _ x: Double, _ y: Double, _ z: Double,
 @Test func latZeroLonZeroIsPlusX() {
     expectVector(LatLon(latDeg: 0, lonDeg: 0).unitVector, 1, 0, 0)
 }
+
+@Test func latZeroLonNinetyEastIsPlusY() {
+    expectVector(LatLon(latDeg: 0, lonDeg: 90).unitVector, 0, 1, 0)
+}
