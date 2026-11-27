@@ -29,3 +29,8 @@ private func radius(_ p: ProjectedPoint) -> Double {
     #expect(abs(radius(end) - 1) < 1e-9)
     #expect(abs(end.depth) < 1e-9)
 }
+
+@Test func lineLeavingAndReturningMakesTwoPieces() {
+    let pieces = view.visiblePieces(of: equator(60, 80, 120, 180, -120, -80, -60))
+    #expect(pieces.count == 2)
+}
