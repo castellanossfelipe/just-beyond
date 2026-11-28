@@ -156,36 +156,6 @@ struct GlobePinch: UIGestureRecognizerRepresentable {
     }
 }
 
-/// Double-tap, hold and slide: a long press with one tap first and no delay.
-struct GlobeSlideZoom: UIGestureRecognizerRepresentable {
-    let motion: GlobeMotion
-    let viewport: GlobeViewport
-
-    func makeCoordinator(converter: CoordinateSpaceConverter) -> SimultaneousGestures {
-        SimultaneousGestures()
-    }
-
-    func makeUIGestureRecognizer(context: Context) -> UILongPressGestureRecognizer {
-        let recognizer = UILongPressGestureRecognizer()
-        recognizer.numberOfTapsRequired = 1
-        recognizer.minimumPressDuration = 0
-        recognizer.delegate = context.coordinator
-        return recognizer
-    }
-
-    func handleUIGestureRecognizerAction(_ recognizer: UILongPressGestureRecognizer, context: Context) {
-        let point = screenPoint(context.converter.localLocation)
-        switch recognizer.state {
-        case .began:
-            motion.slideBegan(at: point)
-        case .changed:
-            motion.slideMoved(to: point, in: viewport)
-        default:
-            break
-        }
-    }
-}
-
 struct GlobeDoubleTap: UIGestureRecognizerRepresentable {
     let motion: GlobeMotion
     let viewport: GlobeViewport

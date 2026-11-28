@@ -26,7 +26,6 @@ struct GlobeView: View {
             .gesture(GlobeTouchDown(motion: motion))
             .gesture(GlobeDrag(motion: motion, viewport: viewport, reduceMotion: reduceMotion))
             .gesture(GlobePinch(motion: motion, viewport: viewport))
-            .gesture(GlobeSlideZoom(motion: motion, viewport: viewport))
             .gesture(GlobeDoubleTap(motion: motion, viewport: viewport, reduceMotion: reduceMotion))
             .gesture(GlobeTwoFingerTap(motion: motion, viewport: viewport, reduceMotion: reduceMotion))
         }
