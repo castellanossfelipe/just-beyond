@@ -38,3 +38,14 @@ private func steps(_ arc: [Vector3]) -> [Double] {
         #expect(abs(step - steps[0]) < 1e-9)
     }
 }
+
+@Test(arguments: [
+    (newYork, london),
+    (LatLon(latDeg: 0, lonDeg: 0), LatLon(latDeg: 0, lonDeg: 90)),
+    (LatLon(latDeg: -34, lonDeg: 151), LatLon(latDeg: 34, lonDeg: -118)),
+])
+func arcStepsAreAtMostOneDegree(start: LatLon, end: LatLon) {
+    for step in steps(GreatCircle.arc(from: start, to: end)) {
+        #expect(step <= .pi / 180 + 1e-12)
+    }
+}
