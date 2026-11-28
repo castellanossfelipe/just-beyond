@@ -14,10 +14,12 @@ public enum RangeRing {
         let east = Vector3(x: -sin(lon), y: cos(lon), z: 0)
         let middle = centre.unitVector
         let angle = radiusKm / Earth.radiusKm
-        return stride(from: 0.0, through: 360, by: bearingStepDeg).map { bearingDeg in
+        let points = stride(from: 0.0, to: 360, by: bearingStepDeg).map { bearingDeg in
             let bearing = bearingDeg * .pi / 180
             let heading = north * cos(bearing) + east * sin(bearing)
             return middle * cos(angle) + heading * sin(angle)
         }
+        // Repeat the first point, not bearing 360, so the ends match exactly.
+        return points + points.prefix(1)
     }
 }
