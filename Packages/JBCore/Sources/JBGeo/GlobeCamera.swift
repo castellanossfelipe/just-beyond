@@ -17,7 +17,8 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
     public mutating func drag(dx: Double, dy: Double, globeRadius: Double) {
         let degreesPerPoint = 180 / .pi / (globeRadius * zoom)
         let widthOfParallel = max(cos(centre.latDeg * .pi / 180), Self.minParallelWidth)
-        centre.lonDeg -= dx * degreesPerPoint / widthOfParallel
+        let lonDeg = centre.lonDeg - dx * degreesPerPoint / widthOfParallel
+        centre.lonDeg = lonDeg - 360 * ((lonDeg + 180) / 360).rounded(.down)
         centre.latDeg = min(max(centre.latDeg + dy * degreesPerPoint, -90), 90)
     }
 }
