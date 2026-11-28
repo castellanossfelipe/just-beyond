@@ -1,1 +1,1 @@
-S0.5 task 2: two zoom-out fixes on local branch s0.5-coast (nothing pushed), waiting for the retest; then the PR (say the slide zoom was removed) and task 3, tuning on the phone.
+S0.5 task 2 passed on the phone and is in a PR from s0.5-coast (not merged); next is task 3, Felipe tries the [tune] numbers on that build (off-globe zoom kept for now) and the values come back for the Systems Detail.
