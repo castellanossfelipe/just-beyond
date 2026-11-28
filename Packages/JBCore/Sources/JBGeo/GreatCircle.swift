@@ -10,6 +10,7 @@ public enum GreatCircle {
         let a = start.unitVector
         let b = end.unitVector
         let total = atan2(a.cross(b).length, a.dot(b))
+        if total == 0 { return [a] }
         let count = Int((total / (maxStepDeg * .pi / 180)).rounded(.up))
         // `towards` is the direction at `a`, a quarter turn along the path to `b`.
         let towards = (b - a * a.dot(b)).normalized
