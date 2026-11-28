@@ -43,3 +43,11 @@ private let oneRadianDeg = 180 / Double.pi
     #expect(abs(near.centre.lonDeg - far.centre.lonDeg / 4) < 1e-9)
     #expect(abs(near.centre.latDeg - far.centre.latDeg / 4) < 1e-9)
 }
+
+@Test(arguments: [(45.0, 0.707_106_781_186_547_6), (60, 0.5), (-60, 0.5), (85, 0.2), (90, 0.2)])
+func dragAtHighLatitudeStillFollowsTheFinger(lat: Double, widthOfParallel: Double) {
+    var view = camera(lat: lat)
+    view.drag(dx: 20, dy: 0, globeRadius: radius)
+    // A narrower parallel needs more longitude for the same travel, down to a floor near the poles.
+    #expect(abs(view.centre.lonDeg - -(0.1 * oneRadianDeg / widthOfParallel)) < 1e-9)
+}
