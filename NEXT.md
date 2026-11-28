@@ -1,1 +1,1 @@
-S0.5 task 3 passed on the phone and is in a PR from s0.5-tune; after the merge: S0.2c (theme switch, 20 arcs, gate G0), with G0 measured in a Release build and the build type noted next to every frame time.
+S0.5 task 3 is in PR 14; after the merge the next slice is S0.6 (coastline detail), before S0.2c, once the docs with S0.6 and Systems Detail 16.6 are in the repo; list its test list and wait for the OK (G0 later: Release build, build type noted by every frame time).
