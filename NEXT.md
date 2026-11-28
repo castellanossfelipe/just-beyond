@@ -1,1 +1,1 @@
-S0.5 task 2 passed on the phone and is in a PR from s0.5-coast (not merged); next is task 3, Felipe tries the [tune] numbers on that build (off-globe zoom kept for now) and the values come back for the Systems Detail.
+S0.5 task 3: coast ends at 20 pt/s, max zoom 10 and the pole fix on local branch s0.5-tune (nothing pushed), waiting for the phone test; 16.1 items 1, 2 and 5 need updating at the cool-down.
