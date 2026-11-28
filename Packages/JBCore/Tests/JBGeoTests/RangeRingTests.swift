@@ -60,3 +60,7 @@ func ringLargerThanHalfTheEarthIsClampedNotBroken(radiusKm: Double) {
     #expect(!ring.isEmpty)
     #expect(ring.allSatisfy { angle(antipode, $0) < 1e-9 })
 }
+
+@Test func ringOfNegativeRadiusIsTheCentre() {
+    #expect(RangeRing.points(around: newYork, radiusKm: -500) == [newYork.unitVector])
+}
