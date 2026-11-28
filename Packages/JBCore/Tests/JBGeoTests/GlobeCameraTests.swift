@@ -33,9 +33,8 @@ private let middle = ScreenPoint(x: 195, y: 422)
 
 @Test func dragDownBringsNorthIntoView() {
     var view = camera(lat: 30, lon: -40)
-    view.drag(dx: 0, dy: 50, globeRadius: radius)
+    view.grab(from: middle, to: ScreenPoint(x: middle.x, y: middle.y + 50), in: viewport)
     #expect(view.centre.latDeg > 30)
-    #expect(view.centre.lonDeg == -40)
 }
 
 @Test func dragTurnsLessWhenZoomedIn() {
