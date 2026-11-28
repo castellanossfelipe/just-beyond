@@ -77,3 +77,10 @@ func longitudeWrapsAtTheAntimeridian(startLon: Double, turns: Double) {
     view.pinch(by: 0.5)
     #expect(view.zoom == 1.5)
 }
+
+@Test(arguments: [(100.0, 8.0), (0.001, 1), (0, 1)])
+func pinchStaysInsideZoomLimits(factor: Double, limit: Double) {
+    var view = camera(zoom: 2)
+    view.pinch(by: factor)
+    #expect(view.zoom == limit)
+}
