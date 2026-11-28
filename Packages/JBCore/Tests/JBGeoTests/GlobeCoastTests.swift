@@ -138,3 +138,20 @@ func coastStopsTiltingAtThePole(pole: Double) throws {
     let total = 200 * 0.4995 * (1 - 10 / speed)
     #expect(abs(view.centre.lonDeg - total) < total * 0.001)
 }
+
+/// Longitudes of successive samples, their spacing, and the turning they show. The second turns
+/// more than half way round inside the window, as a sideways drag near a pole can.
+private let wrappingTurns: [(lat: Double, zoom: Double, lons: [Double], spacing: Double, degPerSecond: Double)] = [
+    (0, 4, [179, -179], 0.1, 20),
+    (85, 1, [0, 40, 80, 120, 160, -160, -120], 1.0 / 60, 2_400),
+]
+
+@Test(arguments: wrappingTurns)
+func coastTakesTheShortWayAcrossTheAntimeridian(lat: Double, zoom: Double, lons: [Double], spacing: Double,
+                                                degPerSecond: Double) throws {
+    let turning = lons.enumerated().map { index, lon in
+        CameraSample(timeSeconds: 100 + Double(index) * spacing, centre: LatLon(latDeg: lat, lonDeg: lon))
+    }
+    let coast = try #require(GlobeCoast(samples: turning, zoom: zoom, viewport: viewport))
+    #expect(abs(coast.lonDegPerSecond - degPerSecond) < 1e-6)
+}
