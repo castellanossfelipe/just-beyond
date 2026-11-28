@@ -1,1 +1,1 @@
-S0.5 task 1 done on local branch s0.5-grab (not pushed or merged; try the drag on the phone). Next: S0.5 task 2, the coastStartsFromHowTheGlobeWasMoving test.
+S0.5 task 1 done and merged (#12). Next: S0.5 task 2, the coastStartsFromHowTheGlobeWasMoving test. Open question: a ×2 zoom from a point off the globe swings the camera 48.6° at zoom 1; judge it on the phone once double-tap exists, then add a test.
