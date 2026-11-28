@@ -21,4 +21,7 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
         centre.lonDeg = lonDeg - 360 * ((lonDeg + 180) / 360).rounded(.down)
         centre.latDeg = min(max(centre.latDeg + dy * degreesPerPoint, -90), 90)
     }
+
+    /// `factor` is how much the finger spread changed since the last call.
+    public mutating func pinch(by factor: Double) {}
 }

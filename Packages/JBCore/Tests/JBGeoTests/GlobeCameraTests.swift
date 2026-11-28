@@ -69,3 +69,11 @@ func longitudeWrapsAtTheAntimeridian(startLon: Double, turns: Double) {
     let expected = startLon - travel / radius * oneRadianDeg
     #expect(abs(remainder(view.centre.lonDeg - expected, 360)) < 1e-9)
 }
+
+@Test func pinchScalesZoomByTheFingerSpread() {
+    var view = camera(zoom: 2)
+    view.pinch(by: 1.5)
+    #expect(view.zoom == 3)
+    view.pinch(by: 0.5)
+    #expect(view.zoom == 1.5)
+}
