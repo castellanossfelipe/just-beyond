@@ -2,6 +2,25 @@ import Foundation
 import JBGeo
 import Observation
 
+/// What last zoomed the globe, for the on-screen counter. Goes away with it at S0.4.
+struct LastZoom: Equatable {
+    enum Source: String {
+        case doubleTap = "double-tap"
+        case twoFingerTap = "two-finger tap"
+        case pinch
+    }
+
+    var source: Source
+    /// Asked for, before the zoom limits. Under 1 is zooming out.
+    var factor: Double
+    /// Counts zooms since launch, so a new one shows even if it looks like the last.
+    var number: Int
+
+    var summary: String {
+        String(format: "zoom #%d: %@ ×%.2f", number, source.rawValue, factor)
+    }
+}
+
 /// What the touches do to the camera (Systems Detail 16.1, items 4 to 8). The math is JBGeo's;
 /// this keeps track of one gesture at a time and of the movement after it.
 @Observable
@@ -9,6 +28,7 @@ final class GlobeMotion {
     private(set) var camera: GlobeCamera
     private(set) var coast: GlobeCoast?
     private(set) var zooming: GlobeZoomAnimation?
+    private(set) var lastZoom: LastZoom?
 
     /// Whether the camera moves with no finger on it, so frames have to run.
     var isMoving: Bool { coast != nil || zooming != nil }
@@ -70,17 +90,24 @@ final class GlobeMotion {
     }
 
     /// `midpoint` is between the fingers now; `factor` is the change of their spread.
-    func pinched(by factor: Double, about midpoint: ScreenPoint, in viewport: GlobeViewport) {
+    func pinched(by factor: Double, about midpoint: ScreenPoint, isNew: Bool, in viewport: GlobeViewport) {
         hadTwoFingers = true
+        if !isNew, lastZoom?.source == .pinch {
+            lastZoom?.factor *= factor
+        } else {
+            tag(.pinch, factor: factor)
+        }
         // Zoom about where the drag last held, so its next step carries on from the same place.
         camera.zoom(by: factor, about: grabbed?.point ?? midpoint, in: viewport)
     }
 
     func doubleTapped(at point: ScreenPoint, reduceMotion: Bool, in viewport: GlobeViewport) {
+        tag(.doubleTap, factor: 2)
         zoom(by: 2, about: point, reduceMotion: reduceMotion, in: viewport)
     }
 
     func twoFingerTapped(at midpoint: ScreenPoint, reduceMotion: Bool, in viewport: GlobeViewport) {
+        tag(.twoFingerTap, factor: 0.5)
         zoom(by: 0.5, about: midpoint, reduceMotion: reduceMotion, in: viewport)
     }
 
@@ -107,6 +134,10 @@ final class GlobeMotion {
             zooming = animation
             lastFrame = .now
         }
+    }
+
+    private func tag(_ source: LastZoom.Source, factor: Double) {
+        lastZoom = LastZoom(source: source, factor: factor, number: (lastZoom?.number ?? 0) + 1)
     }
 
     private func record(_ time: Double) {

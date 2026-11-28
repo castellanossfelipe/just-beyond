@@ -33,7 +33,7 @@ struct GlobeView: View {
         .ignoresSafeArea()
         .accessibilityLabel("Globe")
         .overlay(alignment: .bottom) {
-            FrameHUD(recorder: recorder)
+            FrameHUD(recorder: recorder, lastZoom: motion.lastZoom)
                 .padding(.bottom, 24)
         }
     }

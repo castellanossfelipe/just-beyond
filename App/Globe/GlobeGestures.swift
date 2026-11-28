@@ -150,7 +150,8 @@ struct GlobePinch: UIGestureRecognizerRepresentable {
     func handleUIGestureRecognizerAction(_ recognizer: UIPinchGestureRecognizer, context: Context) {
         // With a finger lifted the midpoint jumps to the one left; there is nothing to zoom.
         guard recognizer.state == .began || recognizer.state == .changed, recognizer.numberOfTouches > 1 else { return }
-        motion.pinched(by: recognizer.scale, about: screenPoint(context.converter.localLocation), in: viewport)
+        motion.pinched(by: recognizer.scale, about: screenPoint(context.converter.localLocation),
+                       isNew: recognizer.state == .began, in: viewport)
         // `scale` is a total; the camera wants the change since last time.
         recognizer.scale = 1
     }
