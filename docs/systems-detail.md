@@ -2,7 +2,7 @@
 
 # Just Beyond – Era 3 Systems Detail
 
-Draft 2 · 25 Nov 2026 (26 Nov: `maxStops` is a playtest setting, 5.1 and 14; **27 Nov: this doc is now master for numbers**, and the number conflicts with the Balance Sheet are settled) · Companion to the Era 3 Crossroads Spec. The Spec says *what* each system is and *why*; this doc says **exactly how it behaves**, so it can be coded and tested. The Software Design doc says how it's built.
+Draft 2 · 25 Nov 2026 (26 Nov: `maxStops` is a playtest setting, 5.1 and 14; **27 Nov: this doc is now master for numbers**, and the number conflicts with the Balance Sheet are settled; 16.1 globe gestures) · Companion to the Era 3 Crossroads Spec. The Spec says *what* each system is and *why*; this doc says **exactly how it behaves**, so it can be coded and tested. The Software Design doc says how it's built.
 
 **How to read the numbers**
 
@@ -497,7 +497,7 @@ What the player does, what the game shows, and what it teaches. Times are real t
 | --- | --- | --- |
 | 0:00 | Globe in mid-century style, seven start cities glowing. One card: pick a start. | The globe is the interface |
 | 0:30 | Camera flies to LaGuardia, 1946. A surplus Dakota in olive drab, already named. One line on the card: "Drag to a city to start a route." | Ownership from minute one |
-| 0:45 | Player drags New York → Montreal. The range ring, trip time and expected profit show while dragging; releasing opens the route card; "Fly". | Show the consequence before the commitment |
+| 0:45 | Player drags from New York (already selected) to Montreal (16.1, item 9). The range ring, trip time and expected profit show while dragging; releasing opens the route card; "Fly". | Show the consequence before the commitment |
 | ~3:00 | The Dakota lands in Montreal (about 2.3 fh); cash ticks up with a sound. | Respond to everything |
 | 3:30 | A pioneer charter appears for Bermuda. The Dakota's ring reaches it, but the 60-minute band leaves a red gap over open water. The card shows the surplus Skymaster ($297,000) and a bar filling toward it. | The engine rule, without a tutorial |
 | 5:00 | (Lines setting) a hint shows that dragging the route onto Boston adds a stop. | Stops are a decision |
@@ -541,7 +541,45 @@ Each start has its own data for steps 3–4: its first good route and its first 
 | **Challenges** | List, scenario map, result card |
 | **Settings** | Sound, haptics, reduce motion, data credits |
 
-**Accessibility:** cards support Dynamic Type; every airport, route and plane has a VoiceOver label and a list fallback for the globe; profit uses icon plus color; Reduce Motion replaces camera flights with fades.
+**Accessibility:** cards support Dynamic Type; every airport, route and plane has a VoiceOver label and a list fallback for the globe; profit uses icon plus color; Reduce Motion replaces camera flights with fades and turns off the globe's coast (16.1).
+
+### 16.1 The globe under your finger
+
+Decided 27 Nov 2026 (Development Plan S0.5). **The place you touch stays under your finger, and north stays up.** The globe should feel like a ball under your thumb, not like a map that slides at its own speed.
+
+| Gesture | What it does |
+| --- | --- |
+| One-finger drag | Turns the globe so the place under your finger stays under it (1) |
+| Lift while moving | The globe coasts and slows like an iOS scroll view (5) |
+| Touch while it coasts or zooms | Stops it at once and grabs |
+| Pinch | Zooms about the point between your fingers (3); moving both fingers also turns the globe, as a drag does |
+| Double-tap | Zooms in ×2 about the tap (6) |
+| Double-tap, hold and slide | One-handed zoom: slide up to zoom in, down to zoom out, about the tap point |
+| Two-finger tap | Zooms out ×2 |
+| Twist, tilt | Nothing. North stays up and the globe is never tilted |
+| Drag from the selected airport | Draws a route instead of turning the globe (9; from S1.5) |
+
+1. **Grab.** Each touch update moves the camera so the place under the previous finger position goes to the new one. Touch steps longer than 2 pt [tune] are split into 2 pt steps. In unit-disc coordinates (offset from the screen middle ÷ (globe radius × zoom), y up), for the place (φ, λ) under the finger and the camera centre (φ0, λ0), with Δ = λ − λ0 and depth d = sin φ sin φ0 + cos φ cos φ0 cos Δ:
+   ```
+   J = ∂(x, y)/∂(φ0, λ0) = | 0      −cos φ cos Δ          |
+                           | −d     −cos φ sin φ0 sin Δ   |
+   μ² = max(0, σc² − smallest eigenvalue of JᵀJ)          σc = 0.25 [tune]
+   cameraStep = (JᵀJ + μ²·I)⁻¹ · Jᵀ · fingerStep
+   ```
+   Then clamp φ0 to ±90° and wrap λ0 to [−180°, 180°). Where J is well conditioned (most of the visible globe), μ = 0 and the place stays exactly under the finger. Where it isn't (near the rim, and places near a pole being dragged sideways), the camera turns no faster than 1/σc and the finger slips a little; the globe never jumps or freezes.
+   **Why north stays up:** winds, "westbound", the era maps and the date stamp all read north-up, and map apps change heading only when you twist. **The cost:** with north fixed, a place near a pole can't follow a long sideways drag (its parallel is narrow on screen), so the finger slips there. That is the honest price of north-up, and the damping keeps it smooth. A free trackball (Shoemake's arcball, Bell's) avoids the slip but rolls north away; rejected.
+2. **Off the globe.** A touch outside the disc grabs the nearest point of the rim (radius 0.999 of the disc).
+3. **Zoom about a point.** Zoom stays 1–8. When it changes, the place that was under the pinch midpoint (or the tap) is moved back under it with the grab step. Because the grab works in screen points, a drag turns the globe less per point the closer you zoom in; there is no separate sensitivity setting.
+4. **Fingers landing or lifting.** When the number of touches changes, the grab restarts from the new touch point (the midpoint, for two fingers) without moving the globe, so a second finger never makes it jump.
+5. **Coast.** The shell keeps the last camera states with their touch timestamps. On lift, the coast's angular velocity ω = camera change over the last 80 ms [tune] ÷ that time (zero if the finger rested). Its speed at the screen middle is s = globe radius × zoom × √(ω_φ² + (cos φ0 · ω_λ)²). No coast if s < 100 pt/s [tune]; s is capped at 4,000 pt/s [tune]. ω decays by 0.998 per millisecond, the default deceleration of an iOS scroll view [V], in closed form (`ω(t) = ω₀ · 0.998^t_ms`, turn so far = ω₀ · (1 − 0.998^t_ms) ÷ (1000 · −ln 0.998) s), so one long step equals many short ones; total turn ≈ ω₀ × 0.5 s. It ends when s < 10 pt/s [tune]. At ±90° the latitude part stops and the longitude part carries on. JBGeo reads no clock: the shell passes elapsed seconds each frame.
+6. **Double-tap zoom** animates over 0.3 s [tune], easing out, zooming about the tap (3). Any touch stops it where it is.
+7. **Taps never wait.** A single tap (selecting an airport, from S0.4) is not delayed to see whether a double-tap follows; a double-tap on an airport selects it and zooms.
+8. **Reduce Motion.** Drag and pinch still track the finger exactly: that is direct manipulation, not animation. The globe does not coast: it stops when you lift (Apple's own physics effects track the finger directly under Reduce Motion [V]). Double-tap zooms jump instead of animating. Camera flights fade (Accessibility, above).
+9. **Routes vs turning (S1.5).** A drag that starts within 22 pt of the selected airport (a 44 pt target, Apple's minimum [V]) draws a route; any other drag turns the globe. Only the selected airport is live, so a crowded coast at zoom 1 never blocks turning. While drawing, when the finger is within 44 pt [tune] of the globe's rim or the screen edge, the globe turns toward it at up to 60° per second [tune], so one thumb can draw New York–London from a whole-globe view. The airport under the finger is found with the same screen point ↔ place functions as the grab.
+
+**Later (not built yet):** camera flights (S0.4, S6.5) move the centre along the great circle and the zoom on a log scale, and any touch stops them.
+
+**Sources:** grabbing the point under the pointer on an orthographic globe: [Jason Davies, Rotate the World](https://www.jasondavies.com/maps/rotate/), [d3-versor](https://github.com/d3/versor) [V]; trackballs and their rim problem: [Shoemake 1992](https://graphicsinterface.org/wp-content/uploads/gi1992-18.pdf), [Henriksen, Sporring & Hornbæk 2004](https://core.ac.uk/download/269088256.pdf) [V]; scroll-view deceleration 0.998 per ms and projection: [Apple, Designing Fluid Interfaces (WWDC18)](https://developer.apple.com/videos/play/wwdc2018/803/), [Schnorr](https://medium.com/ios-os-x-development/gestures-in-fluid-interfaces-on-intent-and-projection-36d158db7395) [V]; one-finger zoom and north-only-by-twist in map apps: [Google Earth help](https://developers.google.com/maps/documentation/earth/navigate-the-globe), [Cult of Mac on Apple Maps](https://www.cultofmac.com/how-to/how-to-use-one-handed-maps-mode-ios-11) [V]; Reduce Motion: [App Store Connect, Reduced Motion criteria](https://developer.apple.com/help/app-store-connect/manage-app-accessibility/reduced-motion-evaluation-criteria), [Apple accessibility-dev list](https://lists.apple.com/archives/accessibility-dev/2017/Dec/msg00007.html) [V]; 44 pt targets: [Apple design tips](https://developer.apple.com/design/tips) [V]. The damped grab was checked in a quick simulation (27 Nov 2026): exact within 0.5 pt for grabs at the middle and halfway out to the sides at 0° and ±45° (grabs toward a pole or the rim slip more), no step over 1.7° per 2 pt near the poles; the [tune] values are for the on-phone pass in S0.5.
 
 ---
 

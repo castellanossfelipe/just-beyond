@@ -2,11 +2,11 @@
 
 # Just Beyond – Development Plan (Era 3 test rollout)
 
-Draft 5 · 27 Nov 2026 (G0 measurement; S0.2 tasks; globe math in JBGeo) · Solo developer, working when there's time, coding with Claude Sonnet, designing with Claude Opus, on a free Apple Account until late M7 (section 8). **Replaces Draft 1** (the phase plan), keeping its ground rules and art approach. How the code is built is in the **Software Design** doc; exact behaviours are in the **Era 3 Systems Detail**. Copy this doc into the repo as `docs/development-plan.md`.
+Draft 5 · 27 Nov 2026 (G0 measurement; S0.2 tasks; globe math in JBGeo; S0.5 globe feel; S1.5 drags from the selected airport) · Solo developer, working when there's time, coding with Claude Sonnet, designing with Claude Opus, on a free Apple Account until late M7 (section 8). **Replaces Draft 1** (the phase plan), keeping its ground rules and art approach. How the code is built is in the **Software Design** doc; exact behaviours are in the **Era 3 Systems Detail**. Copy this doc into the repo as `docs/development-plan.md`.
 
 **Scope of this rollout:** from an empty repo to an **external TestFlight of Era 3 on the whole globe** (gate G3). Weekly challenges with Game Center, the timelapse, the App Store page and launch come after this plan. Everything through M6, and M7's challenges and accessibility work, is built and tested with a free Apple Account; the paid membership is bought after S7.3, before S7.2, S7.4 and gate G3 (section 8).
 
-**The plan is measured in hours, not weeks.** Every slice has an appetite in hours; whenever you have a free hour or two, you pick up the next task. About **257 hours** to gate G3 (M0–M7 add up to about 257).
+**The plan is measured in hours, not weeks.** Every slice has an appetite in hours; whenever you have a free hour or two, you pick up the next task. About **262 hours** to gate G3 (M0–M7 add up to about 262).
 
 ---
 
@@ -118,16 +118,17 @@ For each task:
 
 Hours are appetites. Each milestone lists its slices, what gets tested, and how it ends.
 
-### M0 — Foundations and the walking skeleton (~20 h)
+### M0 — Foundations and the walking skeleton (~25 h)
 
 | Slice | Appetite | What | Key tests |
 | --- | --- | --- | --- |
 | S0.1 Repo and tooling | 3 h | `Packages/JBCore` with its six targets and test targets, linked to the app; `CLAUDE.md`, `NEXT.md`, `docs/` copies, `docs/adr/0001` and `0007`; `scripts/check.sh`; GitHub Actions on every push and pull request: core tests on Linux, app build on macOS | One trivial test per target; core tests green on Linux; app job green |
 | S0.2 Globe spike | 6 h (breaker 8 h) | Natural Earth 110m coastlines → `coastlines.json`; SwiftUI Canvas orthographic globe; drag to rotate, pinch to zoom; one great-circle arc; one range ring; switch between two color themes | Projection math unit tests in JBGeo (Linux CI); the G0 stress scene measured on your iPhone |
+| S0.5 Globe feel (built between S0.2b and S0.2c) | 5 h (breaker 6 h) | The place you touch stays under your finger, north up; coast like a scroll view; pinch about the fingers; one-finger zoom; Reduce Motion (Systems Detail 16.1). Reshaped out of S0.2 after the S0.2b phone test felt clunky (decided 27 Nov 2026) | Golden: the grabbed place stays within 0.5 pt of the finger; no jumps near the poles; coast matches the scroll-view curve; screen point ↔ place round trip |
 | S0.3 Data v0 | 4 h | `build_world.py` for 60 North Atlantic airports; `build_landmask.py`; JBWorld decodes them | pytest data checks; decode test |
 | S0.4 Walking skeleton | 6 h | Tap two airports → `createRoute` → a dot flies the great circle → cash ticks by a placeholder profit through `Engine.advance` → save and reload | `apply(createRoute)`; `advance` raises cash; save round trip; split-advance invariant |
 
-**Gate G0 (decision):** does the Canvas globe hold 60 fps (≤ 8 ms per frame) on your test iPhone (iPhone 13) with coastlines, 20 arcs and a ring? Measured in a Release build on the phone with a stress scene (coastlines, 20 arcs, ring, auto-spin, at 1x and 4x zoom) plus a 30 s Instruments Animation Hitches run. Pass: p95 draw time ≤ 8 ms and no hitches [tune]. iPhone model, refresh rate and iOS version go in ADR 0002. (Decided 27 Nov 2026.) Yes → ADR 0002 accepts Canvas. No → up to 4 h trying Metal, then decide. Also confirm the minimum iOS version.
+**Gate G0 (decision):** does the Canvas globe hold 60 fps (≤ 8 ms per frame) on your test iPhone (iPhone 13) with coastlines, 20 arcs and a ring? Measured in a Release build on the phone with a stress scene (coastlines, 20 arcs, ring, auto-spin, at 1x and 4x zoom) plus a 30 s Instruments Animation Hitches run, during which you also drag, flick and pinch (S0.5). Pass: p95 draw time ≤ 8 ms and no hitches [tune]. iPhone model, refresh rate and iOS version go in ADR 0002. (Decided 27 Nov 2026.) Yes → ADR 0002 accepts Canvas. No → up to 4 h trying Metal, then decide. Also confirm the minimum iOS version.
 
 ### M1 — The range puzzle, grey box, North Atlantic (~35 h)
 
@@ -137,7 +138,7 @@ Hours are appetites. Each milestone lists its slices, what gets tested, and how 
 | S1.2 Wind | 6 h | `build_wind.py` (NOAA long-term mean, ~600 hPa, 5°); tailwind per leg both ways; wind-shaped ring (2.4, 4.4) | Westbound North Atlantic has a headwind; ring is longer east than west at Gander |
 | S1.3 Planes and designs | 7 h | Dakota and Skymaster; wings, engines, tanks (cabin comes in M3); designs; workshop v0 with live ring and numbers (3) | Every part multiplier; design save and buy |
 | S1.4 Rules | 7 h | Runway factor, 60-minute band, route validation both ways (4.1–4.3) | Golden: Bermuda inside Dakota range but outside the band; Wake–Tokyo −1% / +11% once global data lands (M3) |
-| S1.5 Planning on the globe | 8 h | Drag to draw a route; ring, gap in km, worst margin, band drawn red where broken; route card | UI flow test: draw a route |
+| S1.5 Planning on the globe | 8 h | Drag from the selected airport to draw a route (other drags turn the globe; near the edge the globe turns toward the finger; Systems Detail 16.1 item 9); ring, gap in km, worst margin, band drawn red where broken; route card | UI flow test: draw a route, including one to a city on the far side of the globe |
 
 **Ends with:** a cool-down. You can crack Shannon–Gander westbound by fitting extra tanks.
 
@@ -242,23 +243,24 @@ These are research and design tasks, mostly with Opus in the project. Each must 
 | Every few minutes | The test you're writing, then all core tests | You and Sonnet |
 | Every commit | `swift test` on JBCore | You |
 | Every push | Core tests on Linux and the app build on macOS (GitHub Actions); `scripts/check.sh` locally before pushing | Automatic, and you |
-| End of every slice | **On-device checklist:** runs on your iPhone; one-handed; every action has a sound or visual response; common actions in three taps or fewer; no text cut off at large text size; nothing on screen contradicts the route card | You |
+| End of every slice | **On-device checklist:** runs on your iPhone; one-handed; the globe stays under your thumb (Systems Detail 16.1); every action has a sound or visual response; common actions in three taps or fewer; no text cut off at large text size; nothing on screen contradicts the route card | You |
 | End of every milestone | Invariants at 5,000 networks; performance budgets; bots (from M5); cool-down | You |
 | Before every tester build | The five UI flow tests; a fresh install, an upgrade install from the last build's save, and a save import from the last build | You |
 | G0, G1, R2, G3 | Decisions, the rehearsal and playtests (section 3) | You and testers |
 
 ---
 
-## 5. The first six sessions
+## 5. The first sessions
 
 1. **S0.1a:** add `Packages/JBCore` with six library targets and test targets; one trivial test each; link the package to the app; add `CLAUDE.md`, `NEXT.md` and `docs/`. Push.
 2. **S0.1b:** project fixes (iOS 18, Swift 6, `.dev` bundle ID, shared scheme, untrack `xcuserdata`); `scripts/check.sh`; GitHub Actions `core.yml` (Linux) and `app.yml` (macOS) on every push and pull request; ADRs 0001 and 0007; first green runs.
 3. **S0.2a:** `build_coastlines.py` (Natural Earth 110m → simplified `coastlines.json`); orthographic projection and camera in JBGeo with unit tests; draw the coastlines in a Canvas.
 4. **S0.2b:** drag to rotate, pinch to zoom, one great-circle arc New York–London, one range ring; measure frame time on your iPhone.
-5. **S0.2c:** theme switch between two palettes; 20 arcs; decide gate G0 (or start the Metal fallback).
-6. **S0.3:** `build_world.py` for 60 North Atlantic airports, pytest checks, JBWorld decoding test.
+5. **S0.5 (three tasks):** the globe feel (Systems Detail 16.1): grab and zoom math in JBGeo; coast and UIKit gestures; an on-phone tuning pass.
+6. **S0.2c:** theme switch between two palettes; 20 arcs; decide gate G0 (or start the Metal fallback).
+7. **S0.3:** `build_world.py` for 60 North Atlantic airports, pytest checks, JBWorld decoding test.
 
-Items 3–5 are the three 2 h tasks of S0.2 (6 h, breaker 8 h). (Decided 27 Nov 2026.)
+Items 3, 4 and 6 are the three 2 h tasks of S0.2 (6 h, breaker 8 h). (Decided 27 Nov 2026.) S0.5 was reshaped out of S0.2 when the S0.2b phone test showed the drag mapping itself was wrong, which is the circuit breaker's "reshape" (1.3), not an extension. (Decided 27 Nov 2026.)
 
 ---
 
@@ -315,7 +317,7 @@ Decided 26 Nov 2026. Felipe builds with a free Apple Account (Xcode's Personal T
 - **Bundle IDs:** free builds use `com.felipecastellanos.JustBeyond.dev`. The App Store ID is registered only after enrolling. If Apple reports it as taken by the Personal Team, ask Developer Support to release it or choose another; testers carry their saves across with export.
 - **G2 moved into G3.** A friends' test over two weeks needs their own phones, so it needs TestFlight. Rather than pay before the art, rehearsal R2 checks the loop for free at the end of M5, and G3 starts with the old G2 group as wave A, with a day-7 circuit breaker.
 
-**The pay point:** once S7.1 and S7.3 are done (about 247 hours in), enrolling about a week before you want S7.2 and G3 to start (enrolment and the first Beta App Review can take days). From then on it's needed for S7.2 (iCloud), S7.4 and G3 (TestFlight), and everything after this plan (Game Center, In-App Purchase, App Store). Buying it then starts the $99 year when it's used: it covers G3 and launch.
+**The pay point:** once S7.1 and S7.3 are done (about 252 hours in), enrolling about a week before you want S7.2 and G3 to start (enrolment and the first Beta App Review can take days). From then on it's needed for S7.2 (iCloud), S7.4 and G3 (TestFlight), and everything after this plan (Game Center, In-App Purchase, App Store). Buying it then starts the $99 year when it's used: it covers G3 and launch.
 
 **What nothing before G3 can measure:** whether people come back unprompted. Rehearsal R2 and the bots cover pacing, crashes and days with nothing to decide; only G3's wave A answers the return question.
 

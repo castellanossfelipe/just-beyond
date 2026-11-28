@@ -1,1 +1,1 @@
-S0.2b code done on branch s0.2b, not yet run on the iPhone. Next: scene B frame-time reading (Release), then S0.2c (GlobeTheme and SpikeScene; no new JBGeo tests listed).
+S0.2b done; the phone test showed the drag mapping was wrong, so S0.5 (globe feel) comes before S0.2c. Next: S0.5 task 1, the placeUnderFingerStaysUnderFinger test.
