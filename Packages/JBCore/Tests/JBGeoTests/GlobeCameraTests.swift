@@ -20,3 +20,10 @@ private let oneRadianDeg = 180 / Double.pi
     #expect(abs(abs(down.centre.latDeg) - oneRadianDeg) < 1e-9)
     #expect(down.centre.lonDeg == 0)
 }
+
+@Test func dragRightBringsWestIntoView() {
+    var view = camera(lat: 30, lon: -40)
+    view.drag(dx: 50, dy: 0, globeRadius: radius)
+    #expect(view.centre.lonDeg < -40)
+    #expect(view.centre.latDeg == 30)
+}
