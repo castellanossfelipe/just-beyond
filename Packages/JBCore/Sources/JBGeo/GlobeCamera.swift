@@ -6,7 +6,7 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
     public var zoom: Double
 
     /// [tune]
-    public static let zoomRange = 1.0...8.0
+    public static let zoomRange = 1.0...10.0
 
     public init(centre: LatLon, zoom: Double = 1) {
         self.centre = centre
