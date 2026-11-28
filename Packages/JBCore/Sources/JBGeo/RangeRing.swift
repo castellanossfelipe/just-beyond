@@ -7,7 +7,7 @@ public enum RangeRing {
 
     /// Points clockwise from due north of `centre`.
     public static func points(around centre: LatLon, radiusKm: Double) -> [Vector3] {
-        if radiusKm == 0 { return [centre.unitVector] }
+        if radiusKm <= 0 { return [centre.unitVector] }
         let lat = centre.latDeg * .pi / 180
         let lon = centre.lonDeg * .pi / 180
         let north = Vector3(x: -sin(lat) * cos(lon), y: -sin(lat) * sin(lon), z: cos(lat))
