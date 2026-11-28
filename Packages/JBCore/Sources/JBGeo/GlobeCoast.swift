@@ -54,6 +54,8 @@ public struct GlobeCoast: Codable, Equatable, Sendable {
     public var latDegPerSecond: Double { startLatDegPerSecond * speedLeft }
     public var lonDegPerSecond: Double { startLonDegPerSecond * speedLeft }
 
+    public var isFinished: Bool { false }
+
     private var speedLeft: Double { exp(-Self.decayPerSecond * elapsedSeconds) }
 
     /// Turns the camera on by the next `seconds` of the coast.

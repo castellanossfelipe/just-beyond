@@ -89,3 +89,18 @@ func slowReleaseDoesNotCoast(lat: Double, zoom: Double) {
     let lift = CameraSample(timeSeconds: 100.1, centre: flung[flung.count - 1].centre)
     #expect(GlobeCoast(samples: flung + [lift], zoom: 1, viewport: viewport) == nil)
 }
+
+@Test func coastStopsBelowMinimumSpeed() throws {
+    var view = GlobeCamera(centre: LatLon(latDeg: 0, lonDeg: 0))
+    var coast = try #require(GlobeCoast(samples: samples(lonDegPerSecond: degPerSecond(pointsPerSecond: 1_000)),
+                                        zoom: 1, viewport: viewport))
+    // From 1,000 pt/s, 0.998 a millisecond reaches 10 pt/s after 2.300 s.
+    coast.advance(&view, by: 2.29)
+    #expect(!coast.isFinished)
+    coast.advance(&view, by: 0.02)
+    #expect(coast.isFinished)
+
+    let stopped = view
+    coast.advance(&view, by: 1)
+    #expect(view == stopped)
+}
