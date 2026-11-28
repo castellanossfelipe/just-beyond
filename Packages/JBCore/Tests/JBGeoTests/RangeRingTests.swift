@@ -20,3 +20,13 @@ func everyRingPointIsTheSameAngleFromCentre(radiusKm: Double) {
         #expect(abs(angle(newYork.unitVector, point) - radiusKm / 6_371) < 1e-9)
     }
 }
+
+@Test func ringSamplesEveryTwoDegreesOfBearing() throws {
+    // From 0°N 0°E, the bearing of a point is the angle from the z axis towards the y axis.
+    let ring = RangeRing.points(around: LatLon(latDeg: 0, lonDeg: 0), radiusKm: 2_500)
+    try #require(ring.count == 181)
+    for (i, point) in ring.dropLast().enumerated() {
+        let bearingDeg = (atan2(point.y, point.z) * 180 / .pi + 360).truncatingRemainder(dividingBy: 360)
+        #expect(abs(bearingDeg - Double(i) * 2) < 1e-9)
+    }
+}
