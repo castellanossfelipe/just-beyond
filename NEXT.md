@@ -1,1 +1,1 @@
-S0.2b done; the phone test showed the drag mapping was wrong, so S0.5 (globe feel) comes before S0.2c. Next: S0.5 task 1, the placeUnderFingerStaysUnderFinger test.
+S0.5 task 1 done on local branch s0.5-grab (not pushed or merged; try the drag on the phone). Next: S0.5 task 2, the coastStartsFromHowTheGlobeWasMoving test.
