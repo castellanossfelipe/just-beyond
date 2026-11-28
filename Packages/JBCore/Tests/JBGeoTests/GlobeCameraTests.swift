@@ -51,3 +51,10 @@ func dragAtHighLatitudeStillFollowsTheFinger(lat: Double, widthOfParallel: Doubl
     // A narrower parallel needs more longitude for the same travel, down to a floor near the poles.
     #expect(abs(view.centre.lonDeg - -(0.1 * oneRadianDeg / widthOfParallel)) < 1e-9)
 }
+
+@Test(arguments: [(1.0, 90.0), (-1, -90)])
+func latitudeStopsAtThePoles(direction: Double, pole: Double) {
+    var view = camera(lat: 80 * direction)
+    view.drag(dx: 0, dy: 1_000 * direction, globeRadius: radius)
+    #expect(view.centre.latDeg == pole)
+}
