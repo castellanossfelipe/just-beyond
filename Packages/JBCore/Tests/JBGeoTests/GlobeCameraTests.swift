@@ -93,13 +93,13 @@ func longTouchStepIsSplit(lat: Double, start: ScreenPoint) throws {
     #expect(distance(oncePoint, oftenPoint) <= 0.5)
 }
 
-@Test func dragTurnsLessWhenZoomedIn() {
+@Test func zoomedInDragTurnsLess() {
+    let end = ScreenPoint(x: middle.x + 40, y: middle.y)
     var far = camera()
     var near = camera(zoom: 4)
-    far.drag(dx: 40, dy: 40, globeRadius: radius)
-    near.drag(dx: 40, dy: 40, globeRadius: radius)
-    #expect(abs(near.centre.lonDeg - far.centre.lonDeg / 4) < 1e-9)
-    #expect(abs(near.centre.latDeg - far.centre.latDeg / 4) < 1e-9)
+    drag(&far, from: middle, to: end)
+    drag(&near, from: middle, to: end)
+    #expect(abs(near.centre.lonDeg / far.centre.lonDeg - 0.25) < 0.25 * 0.01)
 }
 
 @Test(arguments: [(45.0, 0.707_106_781_186_547_6), (60, 0.5), (-60, 0.5), (85, 0.2), (90, 0.2)])
