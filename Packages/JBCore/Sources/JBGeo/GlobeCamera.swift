@@ -18,6 +18,6 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
         let degreesPerPoint = 180 / .pi / (globeRadius * zoom)
         let widthOfParallel = max(cos(centre.latDeg * .pi / 180), Self.minParallelWidth)
         centre.lonDeg -= dx * degreesPerPoint / widthOfParallel
-        centre.latDeg += dy * degreesPerPoint
+        centre.latDeg = min(max(centre.latDeg + dy * degreesPerPoint, -90), 90)
     }
 }
