@@ -26,11 +26,18 @@ public struct GlobeViewport: Codable, Equatable, Sendable {
 extension GlobeCamera {
     /// The place seen at a screen point, or nil off the globe.
     public func place(at point: ScreenPoint, in viewport: GlobeViewport) -> LatLon? {
-        nil
+        let radius = viewport.globeRadius * zoom
+        let x = (point.x - viewport.width / 2) / radius
+        let y = (viewport.height / 2 - point.y) / radius
+        let depth = (1 - x * x - y * y).squareRoot()
+        return LatLon(centre.eastVector * x + centre.northVector * y + centre.unitVector * depth)
     }
 
     /// Where a place is on the screen, or nil on the far side.
     public func screenPoint(of place: LatLon, in viewport: GlobeViewport) -> ScreenPoint? {
-        nil
+        let radius = viewport.globeRadius * zoom
+        let projected = OrthographicProjection(centre: centre).project(place)
+        return ScreenPoint(x: viewport.width / 2 + projected.x * radius,
+                           y: viewport.height / 2 - projected.y * radius)
     }
 }
