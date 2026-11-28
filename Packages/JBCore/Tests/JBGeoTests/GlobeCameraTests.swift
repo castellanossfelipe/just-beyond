@@ -73,6 +73,26 @@ func placeUnderFingerStaysUnderFinger(lat: Double, zoom: Double) throws {
     #expect(worst <= 0.5)
 }
 
+/// Camera latitude and grab point: one where the grab is exact, and the place at 80° N seen from
+/// 50° N, which a sideways drag can't keep up with, so the path taken matters.
+private let longSteps: [(Double, ScreenPoint)] = [
+    (45, ScreenPoint(x: middle.x + viewport.globeRadius / 2, y: middle.y)),
+    (50, ScreenPoint(x: middle.x, y: middle.y - viewport.globeRadius / 2)),
+]
+
+@Test(arguments: longSteps)
+func longTouchStepIsSplit(lat: Double, start: ScreenPoint) throws {
+    let end = ScreenPoint(x: start.x + 40, y: start.y)
+    var once = camera(lat: lat)
+    var often = camera(lat: lat)
+    let grabbed = try #require(once.place(at: start, in: viewport))
+    once.grab(from: start, to: end, in: viewport)
+    drag(&often, from: start, to: end)
+    let oncePoint = try #require(once.screenPoint(of: grabbed, in: viewport))
+    let oftenPoint = try #require(often.screenPoint(of: grabbed, in: viewport))
+    #expect(distance(oncePoint, oftenPoint) <= 0.5)
+}
+
 @Test func dragTurnsLessWhenZoomedIn() {
     var far = camera()
     var near = camera(zoom: 4)
