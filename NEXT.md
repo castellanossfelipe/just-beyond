@@ -1,1 +1,1 @@
-S0.5 task 2: checkpoint C built on local branch s0.5-coast, waiting for the phone test (drag, flick, touch to stop, pinch, Reduce Motion); next is D (double-tap, two-finger tap, slide zoom), starting with the failing test slideZoomDoublesEveryHundredPoints.
+S0.5 task 2: checkpoint D built on local branch s0.5-coast (nothing pushed), waiting for the phone test (taps, slide zoom, off-globe zoom, Reduce Motion); next is the merge, then task 3, on-phone tuning of the [tune] numbers.
