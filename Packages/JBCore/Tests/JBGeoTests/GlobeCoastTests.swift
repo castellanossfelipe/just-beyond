@@ -69,3 +69,16 @@ func coastIsTheSameInOneStepOrMany(seconds: Double) throws {
     #expect(abs(inOne.centre.lonDeg - inTen.centre.lonDeg) < 1e-9)
     #expect(abs(one.lonDegPerSecond - ten.lonDegPerSecond) < 1e-9)
 }
+
+/// The speed is the screen middle's, so a parallel counts for less away from the equator, and
+/// the same turn counts for more zoomed in.
+@Test(arguments: [0.0, 60], [1.0, 4])
+func slowReleaseDoesNotCoast(lat: Double, zoom: Double) {
+    func coast(pointsPerSecond speed: Double) -> GlobeCoast? {
+        let rate = degPerSecond(pointsPerSecond: speed, lat: lat, zoom: zoom)
+        return GlobeCoast(samples: samples(endingAt: LatLon(latDeg: lat, lonDeg: 0), lonDegPerSecond: rate),
+                          zoom: zoom, viewport: viewport)
+    }
+    #expect(coast(pointsPerSecond: 99) == nil)
+    #expect(coast(pointsPerSecond: 101) != nil)
+}
