@@ -13,7 +13,7 @@ public enum RangeRing {
         let north = Vector3(x: -sin(lat) * cos(lon), y: -sin(lat) * sin(lon), z: cos(lat))
         let east = Vector3(x: -sin(lon), y: cos(lon), z: 0)
         let middle = centre.unitVector
-        let angle = radiusKm / Earth.radiusKm
+        let angle = min(radiusKm / Earth.radiusKm, .pi)
         let points = stride(from: 0.0, to: 360, by: bearingStepDeg).map { bearingDeg in
             let bearing = bearingDeg * .pi / 180
             let heading = north * cos(bearing) + east * sin(bearing)
