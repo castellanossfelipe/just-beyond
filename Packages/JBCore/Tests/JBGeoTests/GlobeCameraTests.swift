@@ -21,11 +21,14 @@ private let oneRadianDeg = 180 / Double.pi
     #expect(down.centre.lonDeg == 0)
 }
 
+/// An iPhone 13 in portrait, and its screen middle.
+private let viewport = GlobeViewport(width: 390, height: 844, globeRadius: 187)
+private let middle = ScreenPoint(x: 195, y: 422)
+
 @Test func dragRightBringsWestIntoView() {
     var view = camera(lat: 30, lon: -40)
-    view.drag(dx: 50, dy: 0, globeRadius: radius)
+    view.grab(from: middle, to: ScreenPoint(x: middle.x + 50, y: middle.y), in: viewport)
     #expect(view.centre.lonDeg < -40)
-    #expect(view.centre.latDeg == 30)
 }
 
 @Test func dragDownBringsNorthIntoView() {

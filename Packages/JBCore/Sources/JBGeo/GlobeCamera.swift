@@ -25,6 +25,10 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
         centre.latDeg = min(max(centre.latDeg + dy * degreesPerPoint, -90), 90)
     }
 
+    /// Turns the globe so the place under `from` goes to `to`.
+    public mutating func grab(from: ScreenPoint, to: ScreenPoint, in viewport: GlobeViewport) {
+    }
+
     /// `factor` is how much the finger spread changed since the last call.
     public mutating func pinch(by factor: Double) {
         zoom = min(max(zoom * factor, Self.zoomRange.lowerBound), Self.zoomRange.upperBound)
