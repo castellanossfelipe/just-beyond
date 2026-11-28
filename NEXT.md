@@ -1,1 +1,1 @@
-S0.5 task 2: coast math (checkpoints A, B) done on local branch s0.5-coast; next is C, UIKit touches and the coast on screen (no test), decisions in issue #11 plus: no coast after two fingers, then stop for the phone test.
+S0.5 task 2: checkpoint C built on local branch s0.5-coast, waiting for the phone test (drag, flick, touch to stop, pinch, Reduce Motion); next is D (double-tap, two-finger tap, slide zoom), starting with the failing test slideZoomDoublesEveryHundredPoints.
