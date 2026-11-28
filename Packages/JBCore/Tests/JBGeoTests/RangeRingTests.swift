@@ -30,3 +30,7 @@ func everyRingPointIsTheSameAngleFromCentre(radiusKm: Double) {
         #expect(abs(bearingDeg - Double(i) * 2) < 1e-9)
     }
 }
+
+@Test func ringOfZeroRadiusIsTheCentre() {
+    #expect(RangeRing.points(around: newYork, radiusKm: 0) == [newYork.unitVector])
+}
