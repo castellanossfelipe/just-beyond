@@ -104,3 +104,20 @@ func slowReleaseDoesNotCoast(lat: Double, zoom: Double) {
     coast.advance(&view, by: 1)
     #expect(view == stopped)
 }
+
+@Test func fastFlingIsCapped() throws {
+    func fling(pointsPerSecond speed: Double) throws -> (start: Double, turned: Double) {
+        let rate = degPerSecond(pointsPerSecond: speed, zoom: 4)
+        var view = GlobeCamera(centre: LatLon(latDeg: 0, lonDeg: 0), zoom: 4)
+        var coast = try #require(GlobeCoast(samples: samples(lonDegPerSecond: rate), zoom: 4, viewport: viewport))
+        let start = coast.lonDegPerSecond
+        // Short enough not to go all the way round.
+        coast.advance(&view, by: 0.2)
+        return (start, view.centre.lonDeg)
+    }
+    let fast = try fling(pointsPerSecond: 10_000)
+    let cap = try fling(pointsPerSecond: 4_000)
+    #expect(abs(fast.start - cap.start) < 1e-9)
+    #expect(abs(fast.turned - cap.turned) < 1e-9)
+    #expect(abs(cap.start - degPerSecond(pointsPerSecond: 4_000, zoom: 4)) < 1e-9)
+}
