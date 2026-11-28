@@ -1,1 +1,1 @@
-S0.5 task 3 passed on the phone (local branch s0.5-tune, not pushed or merged); next: PR and merge, docs at the cool-down, then S0.2c (theme switch, 20 arcs, gate G0; last p95 7.8 ms against an 8 ms limit).
+S0.5 task 3 passed on the phone and is in a PR from s0.5-tune; after the merge: S0.2c (theme switch, 20 arcs, gate G0), with G0 measured in a Release build and the build type noted next to every frame time.
