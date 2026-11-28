@@ -188,16 +188,20 @@ func sidewaysDragNearPoleDoesNotFreeze(travel: Double) throws {
     #expect(abs(view.centre.lonDeg) >= 20)
 }
 
-/// Start longitude and finger travel: across the antimeridian each way, and many times round.
-private let longDrags: [(Double, Double)] = [(179, -10), (-179, 10), (0, 20 * 2 * Double.pi * radius + 1)]
+/// Start longitude, finger travel from the middle, and how many such drags: across the
+/// antimeridian each way, and nearly three times round.
+private let wrappingDrags: [(Double, Double, Int)] = [(179, -50, 1), (-179, 50, 1), (0, 100, 30)]
 
-@Test(arguments: longDrags)
-func longitudeWrapsAtTheAntimeridian(startLon: Double, travel: Double) {
+@Test(arguments: wrappingDrags)
+func longitudeWrapsAtTheAntimeridian(startLon: Double, travel: Double, drags: Int) {
     var view = camera(lon: startLon)
-    view.drag(dx: travel, dy: 0, globeRadius: radius)
+    for _ in 0..<drags {
+        drag(&view, from: middle, to: ScreenPoint(x: middle.x + travel, y: middle.y))
+    }
     #expect(view.centre.lonDeg >= -180 && view.centre.lonDeg < 180)
-    let expected = startLon - travel / radius * oneRadianDeg
-    #expect(abs(remainder(view.centre.lonDeg - expected, 360)) < 1e-9)
+    // On the equator, the place at the middle ends `travel` to the side of the new middle.
+    let expected = startLon - Double(drags) * asin(travel / viewport.globeRadius) * oneRadianDeg
+    #expect(abs(remainder(view.centre.lonDeg - expected, 360)) < 0.01)
 }
 
 @Test func pinchScalesZoomByTheFingerSpread() {
