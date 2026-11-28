@@ -49,3 +49,11 @@ func arcStepsAreAtMostOneDegree(start: LatLon, end: LatLon) {
         #expect(step <= .pi / 180 + 1e-12)
     }
 }
+
+@Test func arcMidpointOfEquatorQuarterIsFortyFiveDegrees() {
+    let arc = GreatCircle.arc(from: LatLon(latDeg: 0, lonDeg: 0), to: LatLon(latDeg: 0, lonDeg: 90))
+    let middle = LatLon(arc[arc.count / 2])
+    #expect(arc.count % 2 == 1)
+    #expect(abs(middle.latDeg) < 1e-9)
+    #expect(abs(middle.lonDeg - 45) < 1e-9)
+}
