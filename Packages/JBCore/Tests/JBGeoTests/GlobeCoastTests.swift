@@ -52,3 +52,20 @@ private func degPerSecond(pointsPerSecond speed: Double, lat: Double = 0, zoom: 
     #expect(abs(view.centre.lonDeg - total) < total * 0.001)
     #expect(view.centre.latDeg == 0)
 }
+
+/// The second duration runs past the end of the coast.
+@Test(arguments: [0.5, 5.0])
+func coastIsTheSameInOneStepOrMany(seconds: Double) throws {
+    var inOne = GlobeCamera(centre: LatLon(latDeg: 10, lonDeg: 0))
+    var inTen = inOne
+    var one = try #require(GlobeCoast(samples: samples(endingAt: inOne.centre, latDegPerSecond: 30, lonDegPerSecond: 200),
+                                      zoom: 1, viewport: viewport))
+    var ten = one
+
+    one.advance(&inOne, by: seconds)
+    for _ in 1...10 { ten.advance(&inTen, by: seconds / 10) }
+
+    #expect(abs(inOne.centre.latDeg - inTen.centre.latDeg) < 1e-9)
+    #expect(abs(inOne.centre.lonDeg - inTen.centre.lonDeg) < 1e-9)
+    #expect(abs(one.lonDegPerSecond - ten.lonDegPerSecond) < 1e-9)
+}
