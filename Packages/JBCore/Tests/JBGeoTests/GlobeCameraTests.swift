@@ -42,7 +42,7 @@ private func distance(_ a: ScreenPoint, _ b: ScreenPoint) -> Double {
 
 /// Golden (Systems Detail 16.1). Grabs at the middle and halfway out to each side, 40 pt drags
 /// in eight directions.
-@Test(arguments: [0.0, 45, -45], [1.0, 4, 8])
+@Test(arguments: [0.0, 45, -45], [1.0, 4, 8, 10])
 func placeUnderFingerStaysUnderFinger(lat: Double, zoom: Double) throws {
     var worst = 0.0
     for offset in [0, -viewport.globeRadius / 2, viewport.globeRadius / 2] {
@@ -88,7 +88,7 @@ private let jumpyDrags: [(Double, Double, Double)] = [
     (0, 0.99, 0), (0, 0, -0.99), (45, -0.7, 0.7), (-45, 0.7, -0.7),
 ]
 
-@Test(arguments: jumpyDrags, [1.0, 8])
+@Test(arguments: jumpyDrags, [1.0, 8, 10])
 func dragNeverJumps(drag: (Double, Double, Double), zoom: Double) {
     let (lat, right, up) = drag
     let radius = viewport.globeRadius * zoom
@@ -237,7 +237,7 @@ func zoomAboutPointKeepsThatPlaceStill(lat: Double, factor: Double) throws {
     #expect(view.zoom == 1.5)
 }
 
-@Test(arguments: [(100.0, 8.0), (0.001, 1), (0, 1)])
+@Test(arguments: [(100.0, 10.0), (0.001, 1), (0, 1)])
 func pinchStaysInsideZoomLimits(factor: Double, limit: Double) {
     var view = camera(zoom: 2)
     view.pinch(by: factor)
