@@ -138,36 +138,63 @@ func correctedDragNeverJumps(step: (Double, Double, Double, Double), zoom: Doubl
     #expect(abs(view.centre.lonDeg) <= limit)
 }
 
-/// The nearest point of the rim, at 0.999 of the radius, for a point beyond it.
-private func rim(_ point: ScreenPoint) -> ScreenPoint {
-    let dx = point.x - middle.x
-    let dy = point.y - middle.y
-    let r = hypot(dx, dy) / viewport.globeRadius
-    guard r > 0.999 else { return point }
-    return ScreenPoint(x: middle.x + dx * 0.999 / r, y: middle.y + dy * 0.999 / r)
+/// Sideways drags off the globe, as offsets from the screen middle. The same drag twice as far out
+/// has the same nearest rim points.
+@Test(arguments: [(-180.0, -380.0), (-30, 300)])
+func dragFromOutsideTheGlobeGrabsTheRim(x: Double, y: Double) {
+    var near = camera(lat: 20)
+    var far = camera(lat: 20)
+    for step in 0..<60 {
+        let from = x + Double(step), to = x + Double(step + 1)
+        near.grab(from: ScreenPoint(x: middle.x + from, y: middle.y + y),
+                  to: ScreenPoint(x: middle.x + to, y: middle.y + y), in: viewport)
+        far.grab(from: ScreenPoint(x: middle.x + 2 * from, y: middle.y + 2 * y),
+                 to: ScreenPoint(x: middle.x + 2 * to, y: middle.y + 2 * y), in: viewport)
+    }
+    #expect(near != camera(lat: 20))
+    #expect(abs(near.centre.latDeg - far.centre.latDeg) < 1e-9)
+    #expect(abs(near.centre.lonDeg - far.centre.lonDeg) < 1e-9)
 }
 
-/// Where the finger starts, as an offset from the screen middle in points, and its travel: off to
-/// one side, out in a corner, and from on the globe to off it.
-private let outsideDrags: [(Double, Double, Double, Double)] = [
-    (192, 0, 0, 40), (-180, -380, 60, 0), (170, 0, 40, -30),
-]
-
-@Test(arguments: outsideDrags)
-func dragFromOutsideTheGlobeGrabsTheRim(x: Double, y: Double, dx: Double, dy: Double) {
-    var outside = camera(lat: 20)
-    var onRim = camera(lat: 20)
-    var previous = ScreenPoint(x: middle.x + x, y: middle.y + y)
+/// From on the globe, out over the rim and away.
+@Test func dragOffTheGlobeNeverJumps() {
+    var view = camera(lat: 20)
+    var previous = ScreenPoint(x: middle.x + 170, y: middle.y)
+    var worst = 0.0
+    var length = 0.0
     for step in 1...40 {
         let t = Double(step) / 40
-        let next = ScreenPoint(x: middle.x + x + dx * t, y: middle.y + y + dy * t)
-        outside.grab(from: previous, to: next, in: viewport)
-        onRim.grab(from: rim(previous), to: rim(next), in: viewport)
+        let next = ScreenPoint(x: middle.x + 170 + 40 * t, y: middle.y - 30 * t)
+        let before = view.centre
+        view.grab(from: previous, to: next, in: viewport)
+        worst = max(worst, abs(view.centre.latDeg - before.latDeg),
+                    abs(remainder(view.centre.lonDeg - before.lonDeg, 360)))
+        length = max(length, distance(previous, next))
         previous = next
     }
-    #expect(onRim != camera(lat: 20))
-    #expect(abs(outside.centre.latDeg - onRim.centre.latDeg) < 1e-9)
-    #expect(abs(outside.centre.lonDeg - onRim.centre.lonDeg) < 1e-9)
+    #expect(view != camera(lat: 20))
+    // No step may turn further than its own length in globe radii over σc = 0.25, in radians.
+    #expect(worst <= length / viewport.globeRadius / 0.25 * oneRadianDeg * (1 + 1e-9))
+}
+
+/// From 40 degrees, north and south: grabs low and off to the side. The finger travels one radian
+/// for each globe radius of the 50 degrees to go.
+@Test(arguments: [(195.0, 560.0), (195, 700), (270, 580), (100, 500)], [1.0, 2])
+func verticalDragWithRoomReachesThePole(grab: (x: Double, y: Double), zoom: Double) {
+    for pole in [1.0, -1] {
+        var view = camera(lat: 40 * pole, zoom: zoom)
+        let start = ScreenPoint(x: grab.x, y: pole > 0 ? grab.y : viewport.height - grab.y)
+        let travel = 50 / oneRadianDeg * viewport.globeRadius * zoom + 1
+        view.grab(from: start, to: ScreenPoint(x: start.x, y: start.y + travel * pole), in: viewport)
+        #expect(view.centre.latDeg == 90 * pole)
+    }
+}
+
+@Test func verticalDragBesideTheGlobeTiltsOneRadianPerRadius() {
+    var view = camera(lat: 20)
+    view.grab(from: ScreenPoint(x: middle.x + 192, y: middle.y),
+              to: ScreenPoint(x: middle.x + 192, y: middle.y + 40), in: viewport)
+    #expect(abs(view.centre.latDeg - (20 + 40 / viewport.globeRadius * oneRadianDeg)) < 0.01)
 }
 
 @Test func zoomedInDragTurnsLess() {
