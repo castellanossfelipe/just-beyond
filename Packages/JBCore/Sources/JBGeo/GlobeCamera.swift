@@ -6,7 +6,7 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
     public var zoom: Double
 
     /// [tune]
-    public static let zoomRange = 1.0...8.0
+    public static let zoomRange = 1.0...10.0
 
     public init(centre: LatLon, zoom: Double = 1) {
         self.centre = centre
@@ -21,7 +21,14 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
     static let longestGrabStep = 2.0
 
     /// Turns the globe so the place under `from` goes to `to` (Systems Detail 16.1, item 1).
+    /// Where the finger has to slip, latitude still turns with its travel up or down the screen,
+    /// so a vertical drag always gets to the pole.
     public mutating func grab(from: ScreenPoint, to: ScreenPoint, in viewport: GlobeViewport) {
+        grab(from: from, to: to, in: viewport, tiltsWithFinger: true)
+    }
+
+    private mutating func grab(from: ScreenPoint, to: ScreenPoint, in viewport: GlobeViewport,
+                               tiltsWithFinger: Bool) {
         let length = hypot(to.x - from.x, to.y - from.y)
         // The margin stops rounding noise splitting a step that is exactly the longest.
         let steps = max(1, Int((length / Self.longestGrabStep - 1e-9).rounded(.up)))
@@ -29,25 +36,39 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
         for step in 1...steps {
             let t = Double(step) / Double(steps)
             let next = ScreenPoint(x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t)
-            grabStep(from: previous, to: next, in: viewport)
+            grabStep(from: previous, to: next, in: viewport, tiltsWithFinger: tiltsWithFinger)
             previous = next
         }
     }
 
-    private mutating func grabStep(from: ScreenPoint, to: ScreenPoint, in viewport: GlobeViewport) {
+    private mutating func grabStep(from finger: ScreenPoint, to nextFinger: ScreenPoint,
+                                   in viewport: GlobeViewport, tiltsWithFinger: Bool) {
         let radius = viewport.globeRadius * zoom
-        let from = viewport.clampedToRim(from, radius: radius)
-        let to = viewport.clampedToRim(to, radius: radius)
+        let from = viewport.clampedToRim(finger, radius: radius)
+        let to = viewport.clampedToRim(nextFinger, radius: radius)
+        let pastRim = from != finger || to != nextFinger
         guard let place = place(at: from, in: viewport) else { return }
         // In unit-disc coordinates the screen's y points up.
         let target = (x: (to.x - viewport.width / 2) / radius, y: (viewport.height / 2 - to.y) / radius)
         let before = centre
         // One solve is only linear, and the misses add up over a drag. Where it was undamped, a
         // second solve toward the same point removes what is left.
-        if !step(place, toward: target) {
+        let damped = step(place, toward: target)
+        if !damped {
             step(place, toward: target)
             limitTurn(since: before, to: hypot(to.x - from.x, to.y - from.y) / radius / Self.dampingFloor)
         }
+        if tiltsWithFinger, damped || pastRim {
+            // The finger itself, not where the rim holds it. Down the screen brings north into view.
+            tilt(atLeast: (nextFinger.y - finger.y) / radius * 180 / .pi, since: before)
+        }
+    }
+
+    /// Makes the change of latitude since `before` at least `degrees`, in its direction.
+    private mutating func tilt(atLeast degrees: Double, since before: LatLon) {
+        let least = min(max(before.latDeg + degrees, -90), 90)
+        if degrees > 0 { centre.latDeg = max(centre.latDeg, least) }
+        if degrees < 0 { centre.latDeg = min(centre.latDeg, least) }
     }
 
     /// Shortens the turn made since `before` to at most `limit` radians, keeping its direction.
@@ -109,7 +130,8 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
         pinch(by: factor)
         // Zooming slid the place along its line from the middle; grab it and bring it back.
         if let held, let now = screenPoint(of: held, in: viewport) {
-            grab(from: now, to: point, in: viewport)
+            // This is a correction, not a finger's travel, so it adds no tilt of its own.
+            grab(from: now, to: point, in: viewport, tiltsWithFinger: false)
         }
     }
 

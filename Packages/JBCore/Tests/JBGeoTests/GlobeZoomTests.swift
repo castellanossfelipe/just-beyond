@@ -6,7 +6,7 @@ import JBGeo
 private let viewport = GlobeViewport(width: 390, height: 844, globeRadius: 187)
 
 /// Zoom at the tap, the factor asked for and the zoom it ends at: in, out, and into the limit.
-@Test(arguments: [(1.0, 2.0, 2.0), (4, 0.5, 2), (6, 2, 8)])
+@Test(arguments: [(1.0, 2.0, 2.0), (4, 0.5, 2), (6, 2, 10)])
 func doubleTapZoomEasesOutToTwice(start: Double, factor: Double, end: Double) throws {
     var view = GlobeCamera(centre: LatLon(latDeg: 30, lonDeg: -40), zoom: start)
     let tap = ScreenPoint(x: 195 + 90, y: 422 - 40)

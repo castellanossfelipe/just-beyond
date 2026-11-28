@@ -20,7 +20,7 @@ public struct GlobeCoast: Codable, Equatable, Sendable {
     static let keptPerMillisecond = 0.998
 
     /// The coast ends when the screen middle moves slower than this, in points a second. [tune]
-    static let slowestSpeed = 10.0
+    static let slowestSpeed = 20.0
 
     /// No coast from a release slower than this, in points a second. [tune]
     static let slowestRelease = 100.0
