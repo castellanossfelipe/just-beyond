@@ -32,3 +32,23 @@ private func samples(endingAt end: LatLon = LatLon(latDeg: 0, lonDeg: 0),
     #expect(abs(coast.latDegPerSecond - 20) < 1e-9)
     #expect(abs(coast.lonDegPerSecond - 100) < 1e-9)
 }
+
+/// Longitude turning that moves the screen middle at `speed` points a second.
+private func degPerSecond(pointsPerSecond speed: Double, lat: Double = 0, zoom: Double = 1) -> Double {
+    speed / (viewport.globeRadius * zoom * cos(lat * .pi / 180)) * 180 / .pi
+}
+
+@Test func coastSlowsLikeAScrollView() throws {
+    let rate = degPerSecond(pointsPerSecond: 1_000)
+    var view = GlobeCamera(centre: LatLon(latDeg: 0, lonDeg: 0))
+    var coast = try #require(GlobeCoast(samples: samples(lonDegPerSecond: rate), zoom: 1, viewport: viewport))
+
+    coast.advance(&view, by: 0.1)
+    #expect(abs(coast.lonDegPerSecond - rate * pow(0.998, 100)) < 1e-9)
+
+    // Long enough to be over. It stops at 10 of its 1,000 pt/s, so that share of the turn is not made.
+    coast.advance(&view, by: 10)
+    let total = rate * 0.4995 * (1 - 10.0 / 1_000)
+    #expect(abs(view.centre.lonDeg - total) < total * 0.001)
+    #expect(view.centre.latDeg == 0)
+}

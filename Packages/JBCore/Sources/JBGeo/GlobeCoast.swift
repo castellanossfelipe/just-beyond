@@ -27,4 +27,7 @@ public struct GlobeCoast: Codable, Equatable, Sendable {
         latDegPerSecond = (lift.centre.latDeg - reference.centre.latDeg) / seconds
         lonDegPerSecond = (lift.centre.lonDeg - reference.centre.lonDeg) / seconds
     }
+
+    /// Turns the camera on by the next `seconds` of the coast.
+    public mutating func advance(_ camera: inout GlobeCamera, by seconds: Double) {}
 }
