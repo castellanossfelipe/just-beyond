@@ -34,3 +34,10 @@ func everyRingPointIsTheSameAngleFromCentre(radiusKm: Double) {
 @Test func ringOfZeroRadiusIsTheCentre() {
     #expect(RangeRing.points(around: newYork, radiusKm: 0) == [newYork.unitVector])
 }
+
+@Test(arguments: [newYork, LatLon(latDeg: 0, lonDeg: 180), LatLon(latDeg: 90, lonDeg: 0)])
+func ringIsClosed(centre: LatLon) {
+    let ring = RangeRing.points(around: centre, radiusKm: 2_500)
+    #expect(ring.count > 2)
+    #expect(ring.first == ring.last)
+}
