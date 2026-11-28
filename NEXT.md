@@ -1,1 +1,1 @@
-S0.5 task 1 merged (PR #12), all green; next is task 2, starting with the failing test coastStartsFromHowTheGlobeWasMoving; checkpoints and open questions are in the comment on issue #11.
+S0.5 task 2 passed on the phone and is in a PR from s0.5-coast (not merged); next is task 3, Felipe tries the [tune] numbers on that build (off-globe zoom kept for now) and the values come back for the Systems Detail.

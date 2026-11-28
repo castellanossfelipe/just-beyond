@@ -47,10 +47,11 @@ final class FrameRecorder {
 /// Draw times, refreshed twice a second. Tap to start a new measurement.
 struct FrameHUD: View {
     let recorder: FrameRecorder
+    var lastZoom: LastZoom?
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.5)) { _ in
-            Text(recorder.summary)
+            Text(recorder.summary + "\n" + (lastZoom?.summary ?? "no zoom yet"))
                 .font(.caption.monospacedDigit())
                 .foregroundStyle(.black)
                 .padding(8)
