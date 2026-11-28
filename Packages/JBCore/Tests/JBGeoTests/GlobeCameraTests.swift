@@ -59,11 +59,12 @@ func latitudeStopsAtThePoles(direction: Double, pole: Double) {
     #expect(view.centre.latDeg == pole)
 }
 
-@Test(arguments: [(179.0, -1.0), (-179, 1), (0, 20)])
-func longitudeWrapsAtTheAntimeridian(startLon: Double, turns: Double) {
-    // Drag far enough to cross the antimeridian, or to go many times round.
+/// Start longitude and finger travel: across the antimeridian each way, and many times round.
+private let longDrags: [(Double, Double)] = [(179, -10), (-179, 10), (0, 20 * 2 * Double.pi * radius + 1)]
+
+@Test(arguments: longDrags)
+func longitudeWrapsAtTheAntimeridian(startLon: Double, travel: Double) {
     var view = camera(lon: startLon)
-    let travel = turns == 20 ? turns * 2 * .pi * radius + 1 : turns * 10
     view.drag(dx: travel, dy: 0, globeRadius: radius)
     #expect(view.centre.lonDeg >= -180 && view.centre.lonDeg < 180)
     let expected = startLon - travel / radius * oneRadianDeg

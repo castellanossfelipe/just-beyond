@@ -21,4 +21,17 @@ public struct LatLon: Codable, Equatable, Sendable {
         let lat = latDeg * .pi / 180
         return Vector3(x: cos(lat) * cos(lon), y: cos(lat) * sin(lon), z: sin(lat))
     }
+
+    /// The direction east along the ground here. At a pole, `lonDeg` still picks one.
+    var eastVector: Vector3 {
+        let lon = lonDeg * .pi / 180
+        return Vector3(x: -sin(lon), y: cos(lon), z: 0)
+    }
+
+    /// The direction north along the ground here.
+    var northVector: Vector3 {
+        let lon = lonDeg * .pi / 180
+        let lat = latDeg * .pi / 180
+        return Vector3(x: -sin(lat) * cos(lon), y: -sin(lat) * sin(lon), z: cos(lat))
+    }
 }

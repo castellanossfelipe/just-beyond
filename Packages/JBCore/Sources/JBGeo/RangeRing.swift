@@ -8,10 +8,8 @@ public enum RangeRing {
     /// Points clockwise from due north of `centre`.
     public static func points(around centre: LatLon, radiusKm: Double) -> [Vector3] {
         if radiusKm <= 0 { return [centre.unitVector] }
-        let lat = centre.latDeg * .pi / 180
-        let lon = centre.lonDeg * .pi / 180
-        let north = Vector3(x: -sin(lat) * cos(lon), y: -sin(lat) * sin(lon), z: cos(lat))
-        let east = Vector3(x: -sin(lon), y: cos(lon), z: 0)
+        let north = centre.northVector
+        let east = centre.eastVector
         let middle = centre.unitVector
         let angle = min(radiusKm / Earth.radiusKm, .pi)
         let points = stride(from: 0.0, to: 360, by: bearingStepDeg).map { bearingDeg in
