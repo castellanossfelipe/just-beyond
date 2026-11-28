@@ -51,11 +51,30 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
         let radius = viewport.globeRadius * zoom
         // In unit-disc coordinates the screen's y points up.
         let target = (x: (to.x - viewport.width / 2) / radius, y: (viewport.height / 2 - to.y) / radius)
+        let before = centre
         // One solve is only linear, and the misses add up over a drag. Where it was undamped, a
         // second solve toward the same point removes what is left.
         if !step(place, toward: target) {
             step(place, toward: target)
+            limitTurn(since: before, to: hypot(to.x - from.x, to.y - from.y) / radius / Self.dampingFloor)
         }
+    }
+
+    /// Shortens the turn made since `before` to at most `limit` radians, keeping its direction.
+    private mutating func limitTurn(since before: LatLon, to limit: Double) {
+        let latTurn = centre.latDeg - before.latDeg
+        let lonTurn = remainder(centre.lonDeg - before.lonDeg, 360)
+        let turn = hypot(latTurn, lonTurn) * .pi / 180
+        guard turn > limit else { return }
+        centre = before
+        move(latDeg: latTurn * limit / turn, lonDeg: lonTurn * limit / turn)
+    }
+
+    /// Latitude stops at the poles; longitude wraps.
+    private mutating func move(latDeg: Double, lonDeg: Double) {
+        centre.latDeg = min(max(centre.latDeg + latDeg, -90), 90)
+        let lon = centre.lonDeg + lonDeg
+        centre.lonDeg = lon - 360 * ((lon + 180) / 360).rounded(.down)
     }
 
     /// One damped least-squares step that moves `place` toward `target` on the unit disc. Returns
@@ -90,9 +109,7 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
         let latStep = (m22 * g1 - m12 * g2) / determinant
         let lonStep = (m11 * g2 - m12 * g1) / determinant
 
-        centre.latDeg = min(max(centre.latDeg + latStep * 180 / .pi, -90), 90)
-        let lonDeg = centre.lonDeg + lonStep * 180 / .pi
-        centre.lonDeg = lonDeg - 360 * ((lonDeg + 180) / 360).rounded(.down)
+        move(latDeg: latStep * 180 / .pi, lonDeg: lonStep * 180 / .pi)
         return damping > 0
     }
 
