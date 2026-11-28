@@ -25,6 +25,9 @@ public struct GlobeCoast: Codable, Equatable, Sendable {
     /// No coast from a release slower than this, in points a second. [tune]
     static let slowestRelease = 100.0
 
+    /// A faster release coasts as if it were this fast, in points a second. [tune]
+    static let fastestRelease = 4_000.0
+
     /// How fast the speed falls: speed = start × e^(−decay × seconds).
     private static var decayPerSecond: Double { -1000 * log(keptPerMillisecond) }
 
@@ -40,14 +43,18 @@ public struct GlobeCoast: Codable, Equatable, Sendable {
               let reference = samples.last(where: { $0.timeSeconds <= lift.timeSeconds - Self.windowSeconds })
         else { return nil }
         let seconds = lift.timeSeconds - reference.timeSeconds
-        startLatDegPerSecond = (lift.centre.latDeg - reference.centre.latDeg) / seconds
-        startLonDegPerSecond = (lift.centre.lonDeg - reference.centre.lonDeg) / seconds
+        let latRate = (lift.centre.latDeg - reference.centre.latDeg) / seconds
+        let lonRate = (lift.centre.lonDeg - reference.centre.lonDeg) / seconds
 
         // How fast the screen middle moves, in points a second.
-        let alongParallel = cos(lift.centre.latDeg * .pi / 180) * startLonDegPerSecond
-        let speed = viewport.globeRadius * zoom * hypot(startLatDegPerSecond, alongParallel) * .pi / 180
+        let alongParallel = cos(lift.centre.latDeg * .pi / 180) * lonRate
+        let speed = viewport.globeRadius * zoom * hypot(latRate, alongParallel) * .pi / 180
         guard speed >= Self.slowestRelease else { return nil }
-        endSeconds = log(speed / Self.slowestSpeed) / Self.decayPerSecond
+
+        let capped = min(speed, Self.fastestRelease)
+        startLatDegPerSecond = latRate * capped / speed
+        startLonDegPerSecond = lonRate * capped / speed
+        endSeconds = log(capped / Self.slowestSpeed) / Self.decayPerSecond
     }
 
     /// How fast the camera centre is turning now.
