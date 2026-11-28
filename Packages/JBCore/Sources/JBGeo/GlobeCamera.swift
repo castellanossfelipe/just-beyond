@@ -5,6 +5,9 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
     public var centre: LatLon
     public var zoom: Double
 
+    /// [tune]
+    public static let zoomRange = 1.0...8.0
+
     /// Floor on cos(latitude), so a drag near a pole can't spin the globe wildly. [tune]
     static let minParallelWidth = 0.2
 
@@ -24,6 +27,6 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
 
     /// `factor` is how much the finger spread changed since the last call.
     public mutating func pinch(by factor: Double) {
-        zoom *= factor
+        zoom = min(max(zoom * factor, Self.zoomRange.lowerBound), Self.zoomRange.upperBound)
     }
 }
