@@ -52,3 +52,11 @@ func ringIsClosed(centre: LatLon) {
     // Due north from the centre carries on down the far side.
     #expect(abs(LatLon(ring[0]).lonDeg - -160) < 1e-9)
 }
+
+@Test(arguments: [20_100.0, 40_000, 1_000_000])
+func ringLargerThanHalfTheEarthIsClampedNotBroken(radiusKm: Double) {
+    let antipode = LatLon(latDeg: -40.71, lonDeg: 105.99).unitVector
+    let ring = RangeRing.points(around: newYork, radiusKm: radiusKm)
+    #expect(!ring.isEmpty)
+    #expect(ring.allSatisfy { angle(antipode, $0) < 1e-9 })
+}
