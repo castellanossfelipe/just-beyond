@@ -29,8 +29,24 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
     /// σc in Systems Detail 16.1. [tune]
     static let dampingFloor = 0.25
 
+    /// The longest finger travel solved in one go, in points. [tune]
+    static let longestGrabStep = 2.0
+
     /// Turns the globe so the place under `from` goes to `to` (Systems Detail 16.1, item 1).
     public mutating func grab(from: ScreenPoint, to: ScreenPoint, in viewport: GlobeViewport) {
+        let length = hypot(to.x - from.x, to.y - from.y)
+        // The margin stops rounding noise splitting a step that is exactly the longest.
+        let steps = max(1, Int((length / Self.longestGrabStep - 1e-9).rounded(.up)))
+        var previous = from
+        for step in 1...steps {
+            let t = Double(step) / Double(steps)
+            let next = ScreenPoint(x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t)
+            grabStep(from: previous, to: next, in: viewport)
+            previous = next
+        }
+    }
+
+    private mutating func grabStep(from: ScreenPoint, to: ScreenPoint, in viewport: GlobeViewport) {
         guard let place = place(at: from, in: viewport) else { return }
         let radius = viewport.globeRadius * zoom
         // In unit-disc coordinates the screen's y points up.
