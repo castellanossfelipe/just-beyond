@@ -21,6 +21,17 @@ public struct GlobeViewport: Codable, Equatable, Sendable {
         self.height = height
         self.globeRadius = globeRadius
     }
+
+    /// A touch off the globe grabs the nearest point of the rim, just inside it (Systems Detail
+    /// 16.1, item 2). `radius` is the globe's radius on screen at the current zoom.
+    func clampedToRim(_ point: ScreenPoint, radius: Double) -> ScreenPoint {
+        let dx = point.x - width / 2
+        let dy = point.y - height / 2
+        let r = (dx * dx + dy * dy).squareRoot() / radius
+        let rim = 0.999
+        guard r > rim else { return point }
+        return ScreenPoint(x: width / 2 + dx * rim / r, y: height / 2 + dy * rim / r)
+    }
 }
 
 extension GlobeCamera {

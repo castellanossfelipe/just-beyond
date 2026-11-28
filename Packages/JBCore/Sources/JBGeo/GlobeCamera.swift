@@ -47,8 +47,10 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
     }
 
     private mutating func grabStep(from: ScreenPoint, to: ScreenPoint, in viewport: GlobeViewport) {
-        guard let place = place(at: from, in: viewport) else { return }
         let radius = viewport.globeRadius * zoom
+        let from = viewport.clampedToRim(from, radius: radius)
+        let to = viewport.clampedToRim(to, radius: radius)
+        guard let place = place(at: from, in: viewport) else { return }
         // In unit-disc coordinates the screen's y points up.
         let target = (x: (to.x - viewport.width / 2) / radius, y: (viewport.height / 2 - to.y) / radius)
         let before = centre
