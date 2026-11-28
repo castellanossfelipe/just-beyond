@@ -1,0 +1,22 @@
+import Foundation
+import Testing
+import JBGeo
+
+private func camera(lat: Double = 0, lon: Double = 0, zoom: Double = 1) -> GlobeCamera {
+    GlobeCamera(centre: LatLon(latDeg: lat, lonDeg: lon), zoom: zoom)
+}
+
+private let radius = 200.0
+private let oneRadianDeg = 180 / Double.pi
+
+@Test func dragAtCentreTurnsOneRadianPerRadiusOfFingerTravel() {
+    var across = camera()
+    across.drag(dx: radius, dy: 0, globeRadius: radius)
+    #expect(abs(abs(across.centre.lonDeg) - oneRadianDeg) < 1e-9)
+    #expect(across.centre.latDeg == 0)
+
+    var down = camera()
+    down.drag(dx: 0, dy: radius, globeRadius: radius)
+    #expect(abs(abs(down.centre.latDeg) - oneRadianDeg) < 1e-9)
+    #expect(down.centre.lonDeg == 0)
+}
