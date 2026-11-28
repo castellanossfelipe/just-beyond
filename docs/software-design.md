@@ -1,8 +1,8 @@
-> **Snapshot of the Project doc "Just Beyond – Software Design", dated 27 Nov 2026.** The Project is the source of truth. Edit it there, then re-copy here (refresh at each milestone cool-down).
+> **Snapshot of the Project doc "Just Beyond – Software Design", dated 28 Nov 2026.** The Project is the source of truth. Edit it there, then re-copy here (refresh at each milestone cool-down).
 
 # Just Beyond – Software Design (Era 3 test rollout)
 
-Draft 4 · 27 Nov 2026 (globe projection and camera in JBGeo; coastlines format; test iPhone named; globe gestures, 8) · For Felipe and Claude Sonnet while coding. Built on a free Apple Account until late M7 (Development Plan 8). **What the game does** is in the GDD, the Era 3 Crossroads Spec and the **Era 3 Systems Detail** (formulas). **What gets built when** is in the Development Plan. This doc is **how it's built**. Copy it into the repo as `docs/software-design.md`; the repo copy is what Sonnet reads.
+Draft 7 · 28 Nov 2026 (globe gestures as built and phone-tuned: 8; earlier on 28 Nov: coastline detail by zoom and gesture zoom to 10: 3, 6, 8, 9; globe legibility and the airport view: 4, 6, 8, 9, 12; earlier, 27 Nov: globe projection and camera in JBGeo; coastlines format; test iPhone named; globe gestures, 8) · For Felipe and Claude Sonnet while coding. Built on a free Apple Account until late M7 (Development Plan 8). **What the game does** is in the GDD, the Era 3 Crossroads Spec and the **Era 3 Systems Detail** (formulas). **What gets built when** is in the Development Plan. This doc is **how it's built**. Copy it into the repo as `docs/software-design.md`; the repo copy is what Sonnet reads.
 
 ---
 
@@ -81,7 +81,7 @@ JustBeyond/                         (git root, GitHub)
 │  ├─ export_fixtures.py            balance model → JSON fixtures
 │  ├─ balance/                      net.py, tests.py, starts.py (reference model, master for numbers; S2.0)
 │  └─ tests/                        pytest data checks
-├─ data/                            hand-curated sources (airports_era3.csv, era3/*.json, text templates)
+├─ data/                            hand-curated sources (airports_era3.csv, coast_keep.csv, era3/*.json, text templates)
 └─ docs/                            copies of the design docs + adr/ (decision records)
 ```
 
@@ -113,7 +113,8 @@ public struct GameState: Codable, Equatable, Sendable {
     public var hubs: [Continent: AirportID]
     public var pools: Set<CityPair>
     public var charters: CharterBoard
-    public var record: AirlineRecord            // milestones, lifetime firsts, first-there dates, logbooks
+    public var record: AirlineRecord            // milestones, lifetime firsts, first-there dates, logbooks,
+                                                // cities whose first arrival has played (Systems Detail 16.5)
     public var liveries: LiveryState
     public var rng: SeededRNG
     public var startNetwork: StartNetworkSnapshot
@@ -155,6 +156,7 @@ public enum Engine {
 - **Money** is a `Double` in dollars; tests compare to within $0.01. Integer cents would make the integration step awkward and gains nothing at these sizes.
 - **IDs** are small string-backed structs (`AirportID("CYQX")`), stable across versions because saves store them.
 - **World** is loaded once at launch and never changes during play.
+- **First arrivals** are recorded in the save (a set of airport IDs in `AirlineRecord`), so an exported save doesn't replay them. Marking one is a shell-side update that changes nothing in the simulation. The "Airport arrivals" setting lives with the other settings in the shell, not in the save.
 
 ---
 
@@ -191,15 +193,16 @@ Python 3 scripts in `tools/`, run by hand when data changes; outputs are committ
 | `airports.json` | OurAirports + `data/airports_era3.csv` (curated: tags, traits, dated runways and names, populations, successor, hot flag) + regional towns | JSON array | < 1 MB |
 | `pairs.json` | Curated `noSurface` and `slowSurface` tables | JSON | small |
 | `era3.json` | `data/era3/*.json`: years, rules switched on, types, parts and keys, world multiplier, thresholds, liner curve, milestones, events, history-airline networks, starts and their kits, text templates, theme ID | JSON | < 500 KB |
+| `runways.json` | OurAirports `runways.csv` (runway ends and headings) + the curated dated runway entries, for the airport view (Systems Detail 16.5) | JSON: per airport, per dated entry, a list of runways as two end points | ~20 KB |
 | `wind.bin` | NOAA NCEP/NCAR long-term mean, ~600 hPa, 5° cells | Little-endian Float32 u,v grid with a small header | < 50 KB |
-| `landmask.bin` | Natural Earth land polygons, 0.25° | Bitset with header | ~130 KB |
+| `landmask.bin` | Natural Earth 10m land + 10m minor islands, 0.25°; a cell is land if its centre is land (Systems Detail 2.2). Used by the rules only, never drawn | Bitset with header | ~130 KB |
 | `oceans.bin` | Natural Earth marine areas, 1° | UInt8 grid with header | ~65 KB |
-| `coastlines.json` | Natural Earth 110m (and 50m for zoom), simplified | {source, scale, lines}; lines are arrays of [lon, lat] | < 2 MB |
+| `coastlines.json` | Natural Earth 10m coastline + 10m minor islands coastline (v5.1.2), in three nested levels by zoom, plus `data/coast_keep.csv` (Systems Detail 16.6). Decided 28 Nov 2026, replacing 110m | {source, scale, levels: [{minZoom, toleranceDeg}], lines}; each line is a chunk of ≤ 128 points, each point [lon, lat, level] (the lowest level that draws it), 2 decimals | < 2 MB |
 | `manifest.json` | All of the above | Versions and SHA-256 per file | — |
 
 **Why JSON, not a database:** 166 curated airports plus a few thousand regional towns fit in memory; JSON is diffable in git, readable by Sonnet, and decodes with `Codable` in a few lines. Revisit only if load time passes 300 ms.
 
-**Data checks (pytest, run on every build):** every curated airport has every field; dated runway entries are in order; every airport that can close has a successor; every start passes rules 3–5 of the Airports doc (two roads per ocean, three gateways per continent, ≤ 25 curated airports in any 2,000 km circle); every milestone references things that exist; every text template's slots exist.
+**Data checks (pytest, run on every build):** every curated airport has every field; dated runway entries are in order; every airport that can close has a successor; every start passes rules 3–5 of the Airports doc (two roads per ocean, three gateways per continent, ≤ 25 curated airports in any 2,000 km circle); every milestone references things that exist; every text template's slots exist; every curated airport has at least one runway in `runways.json` for each dated entry (regional towns may fall back to one generic strip); every keep point in `coast_keep.csv` (and, from S3.1, every curated airport) has a coastline within 5 km at every level; no view's visible coastline points pass the per-level budget (Systems Detail 16.6).
 
 ---
 
@@ -219,10 +222,13 @@ Python 3 scripts in `tools/`, run by hand when data changes; outputs are committ
 - **SwiftUI**, one window: the globe fills the screen and one bottom card sits over it. Navigation is by card, never by stacked screens.
 - **GameStore** (`@Observable`, `@MainActor`) holds `GameState` and `World`, turns gestures into `Command`s, calls `Engine.apply`, plays the feedback for each `Event`, and saves.
 - **Globe renderer behind a protocol** (`GlobeRenderer`) so the drawing technology can change without touching the rest:
-  - **First candidate (spike in M0): 2D orthographic projection (JBGeo) drawn with SwiftUI `Canvas`.** Coastlines, routes as projected great-circle polylines, range ring and band as polygons, airports as symbols. Gestures follow Systems Detail 16.1 (the place under your finger stays under it, north up, coast like a scroll view, one-finger zoom). Every era style is flat illustration, so a flat drawn globe suits the art and keeps line widths crisp.
+  - **First candidate (spike in M0): 2D orthographic projection (JBGeo) drawn with SwiftUI `Canvas`.** Coastlines, routes as projected great-circle polylines, range ring and band as polygons, airports as symbols. Gestures follow Systems Detail 16.1 (the place under your finger stays under it, north up, coast like a scroll view, double-tap and two-finger-tap zoom). Every era style is flat illustration, so a flat drawn globe suits the art and keeps line widths crisp.
   - **Fallback: Metal (`MTKView`) or RealityKit** if Canvas can't hold 60 fps with the full coastline and 60 routes on the test iPhone (iPhone 13; model, refresh rate and iOS version in ADR 0002). It is not the oldest iPhone that runs iOS 18, so G0 doesn't prove older phones. (Decided 27 Nov 2026.)
   - Decision recorded as ADR 0002 at gate G0.
-- **Globe gestures** (decided 27 Nov 2026, Development Plan S0.5): the math is in JBGeo and tested on Linux: a `GlobeViewport` (view size and globe radius, in points, y down, no CoreGraphics types), screen point ↔ place, the damped grab step, zoom about a point, and `GlobeCoast`, a closed-form coast built from timestamped camera samples and advanced by elapsed seconds the shell passes in. `App/Globe/` only reads touches: UIKit recognizers attached through `UIGestureRecognizerRepresentable` (iOS 18), because SwiftUI's `DragGesture` and `MagnifyGesture` don't report the touch midpoint or the number of touches, and running them together made a pinch drag the globe. One pan recognizer (1–2 touches) drives the grab from its midpoint; a pinch recognizer drives zoom about the same midpoint; a long-press recognizer with one tap first and no delay gives double-tap-and-hold zoom; double-tap and two-finger tap zoom in and out. The coast and the double-tap zoom run frame by frame (`TimelineView(.animation)`) only while moving. Reduce Motion is read from `accessibilityReduceMotion`.
+- **Globe gestures** (decided 27 Nov 2026, phone-tuned 28 Nov 2026, Development Plan S0.5): the math is in JBGeo and tested on Linux: a `GlobeViewport` (view size and globe radius, in points, y down, no CoreGraphics types), screen point ↔ place, the damped grab step, zoom about a point, and `GlobeCoast`, a closed-form coast built from timestamped camera samples and advanced by elapsed seconds the shell passes in. `App/Globe/` only reads touches: UIKit recognizers attached through `UIGestureRecognizerRepresentable` (iOS 18), because SwiftUI's `DragGesture` and `MagnifyGesture` don't report the touch midpoint or the number of touches, and running them together made a pinch drag the globe. As built: one pan recognizer (1–2 touches, a small subclass that keeps `event.timestamp`) drives the grab from its midpoint; a pinch recognizer drives zoom about the same midpoint and restarts its scale whenever the number of fingers changes, so a finger landing or lifting never zooms; a zero-delay touch-down recognizer stops a coast or zoom at once (a pan only starts after the finger has moved) and records where the grab really began, so the place doesn't slip by the first movement and a flick is timed from the last moment the finger was within 1 pt of where it landed; double-tap zooms in and two-finger tap zooms out (the two-finger tap is ignored if those touches already pinched or dragged). There is no one-finger slide zoom: it was built and cut after the phone test (28 Nov 2026). The coast and the tap zooms run frame by frame (`TimelineView(.animation)`) only while moving. Reduce Motion is read from `accessibilityReduceMotion`. The recognizers have no automated tests (no app test target for touch yet); each change is checked on the phone against the S0.5 list.
+- **Globe legibility** (decided 28 Nov 2026, Development Plan S1.6): the reach tones, the dot and name layout, picking and camera flights are pure functions in JBGeo, tested on Linux (Systems Detail 16.2–16.4). The shell measures each label's size once per theme and passes sizes in; the Canvas resolves each label's `Text` once and reuses it *(verify the cost on the iPhone 13)*. The layout reruns only when the camera rests, so frames while moving only cull.
+- **Coastline detail** (decided 28 Nov 2026, Development Plan S0.6): `coastlines.json` is decoded once at launch into three levels of chunks, each chunk holding its points as unit vectors (computed once, never per frame) and a bounding circle (centre and angular radius). Each frame, JBGeo picks the level for the zoom (Systems Detail 16.6) and returns the chunks that can touch the screen: on the near side of the globe and inside the screen's cap. Only those are projected and stroked. Both functions are pure and tested on Linux. The fallback if G0 misses: draw one level coarser while the camera moves.
+- **The airport view** (decided 28 Nov 2026, Development Plan S4.5): the same `GlobeRenderer` at its deepest zoom, not a new screen. JBGeo gives a local east-north projection in metres about the airport, matched to the orthographic view at the handoff; the shell draws runway polygons, a few glyphs and plane silhouettes. The first-arrival dive and the 0.2 s fade run frame by frame (`TimelineView(.animation)`) only while playing. No 3D and no tilt, so ADR 0002 is unaffected. SwiftUI's `navigationTransition(.zoom)` is not used: it is a navigation-stack transition (a stacked screen), and developers report open regressions in it on iOS 26.
 - **Theme:** `EraTheme` holds palette, fonts, line styles and paper texture; the mid-century theme is the only one for this rollout. Grey-box theme for prototypes.
 - **Feedback:** short sounds via `AVAudioEngine` and haptics via SwiftUI's sensory feedback, one per `Event` kind, so "respond to everything" is a table, not scattered code.
 - **Accessibility:** Dynamic Type in cards, VoiceOver labels, a list view of airports and routes as the accessible alternative to the globe, Reduce Motion.
@@ -258,13 +264,16 @@ Testing is how the work moves forward, not a phase at the end. Kent Beck's canon
 - The core is tested through its public functions with real values. No mocks inside JBCore: there is nothing to mock, which is the point of the functional core.
 - **Expected numbers come from fixtures, not from the code.** When the balance model changes, run `tools/export_fixtures.py`; never edit a fixture to make a failing test pass.
 - Test names say the rule: `twinCannotCrossBermudaGap`, `extensionsStayAfterRunwayUpgrade`.
-- A bug is fixed only after a failing test reproduces it.
+- A bug is fixed only after a failing test reproduces it. (Touch handling in `App/Globe/` has no test target yet; there the phone test is the check, and any fix to it that can be expressed in JBGeo gets a JBGeo test first.)
 
 **Performance budgets**
 
 | Thing | Budget |
 | --- | --- |
 | Globe frame time | ≤ 8 ms (60 fps with headroom) |
+| Coastline points stroked per frame, worst view | ≤ 12,000 [tune] (checked by pytest over a grid of views; Systems Detail 16.6) |
+| Label layout, 250 candidates | ≤ 1 ms |
+| Globe frame during the first-arrival dive | ≤ 8 ms |
 | `Economics.rates`, 60 routes | ≤ 20 ms |
 | `advance` over 30 days away | ≤ 200 ms |
 | Launch to interactive globe | ≤ 2 s |
@@ -310,3 +319,4 @@ Short files in `docs/adr/`, one per architectural decision: context, decision, c
 | 0007 | CI on GitHub Actions (Linux core, macOS app); no paid Apple services before the membership | Accepted |
 | 0008 | Save export and import, and a deterministic playtest journal | Accepted |
 | 0009 | The balance model in `tools/balance/` is master for numbers; fixtures come only from it | Written in S2.0 |
+| 0010 | The airport view is the globe's deepest zoom, drawn in the same Canvas | Written in S4.5 |

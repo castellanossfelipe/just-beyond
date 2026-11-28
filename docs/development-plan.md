@@ -1,12 +1,12 @@
-> **Snapshot of the Project doc "Just Beyond – Development Plan", dated 27 Nov 2026.** The Project is the source of truth. Edit it there, then re-copy here (refresh at each milestone cool-down).
+> **Snapshot of the Project doc "Just Beyond – Development Plan", dated 28 Nov 2026.** The Project is the source of truth. Edit it there, then re-copy here (refresh at each milestone cool-down).
 
 # Just Beyond – Development Plan (Era 3 test rollout)
 
-Draft 5 · 27 Nov 2026 (G0 measurement; S0.2 tasks; globe math in JBGeo; S0.5 globe feel; S1.5 drags from the selected airport) · Solo developer, working when there's time, coding with Claude Sonnet, designing with Claude Opus, on a free Apple Account until late M7 (section 8). **Replaces Draft 1** (the phase plan), keeping its ground rules and art approach. How the code is built is in the **Software Design** doc; exact behaviours are in the **Era 3 Systems Detail**. Copy this doc into the repo as `docs/development-plan.md`.
+Draft 8 · 28 Nov 2026 (S0.5 phone-tuned: the one-finger slide zoom was cut, the coast ends at 20 pt/s, a vertical drag always reaches the pole; Later gains a one-thumb zoom out. Earlier on 28 Nov: S0.6 Coastline detail, built before S0.2c so G0 measures the real coastline; G0 stress scene at 10x zoom and the densest view; about 281 hours. Earlier on 28 Nov: S1.6 Legible globe; S4.5 Inside the airport; labels in the G0 stress scene. Earlier, 27 Nov: G0 measurement; S0.2 tasks; globe math in JBGeo; S0.5 globe feel; S1.5 drags from the selected airport) · Solo developer, working when there's time, coding with Claude Sonnet, designing with Claude Opus, on a free Apple Account until late M7 (section 8). **Replaces Draft 1** (the phase plan), keeping its ground rules and art approach. How the code is built is in the **Software Design** doc; exact behaviours are in the **Era 3 Systems Detail**. Copy this doc into the repo as `docs/development-plan.md`.
 
 **Scope of this rollout:** from an empty repo to an **external TestFlight of Era 3 on the whole globe** (gate G3). Weekly challenges with Game Center, the timelapse, the App Store page and launch come after this plan. Everything through M6, and M7's challenges and accessibility work, is built and tested with a free Apple Account; the paid membership is bought after S7.3, before S7.2, S7.4 and gate G3 (section 8).
 
-**The plan is measured in hours, not weeks.** Every slice has an appetite in hours; whenever you have a free hour or two, you pick up the next task. About **262 hours** to gate G3 (M0–M7 add up to about 262).
+**The plan is measured in hours, not weeks.** Every slice has an appetite in hours; whenever you have a free hour or two, you pick up the next task. About **281 hours** to gate G3 (M0–M7 add up to about 281).
 
 ---
 
@@ -118,19 +118,20 @@ For each task:
 
 Hours are appetites. Each milestone lists its slices, what gets tested, and how it ends.
 
-### M0 — Foundations and the walking skeleton (~25 h)
+### M0 — Foundations and the walking skeleton (~31 h)
 
 | Slice | Appetite | What | Key tests |
 | --- | --- | --- | --- |
 | S0.1 Repo and tooling | 3 h | `Packages/JBCore` with its six targets and test targets, linked to the app; `CLAUDE.md`, `NEXT.md`, `docs/` copies, `docs/adr/0001` and `0007`; `scripts/check.sh`; GitHub Actions on every push and pull request: core tests on Linux, app build on macOS | One trivial test per target; core tests green on Linux; app job green |
 | S0.2 Globe spike | 6 h (breaker 8 h) | Natural Earth 110m coastlines → `coastlines.json`; SwiftUI Canvas orthographic globe; drag to rotate, pinch to zoom; one great-circle arc; one range ring; switch between two color themes | Projection math unit tests in JBGeo (Linux CI); the G0 stress scene measured on your iPhone |
-| S0.5 Globe feel (built between S0.2b and S0.2c) | 5 h (breaker 6 h) | The place you touch stays under your finger, north up; coast like a scroll view; pinch about the fingers; one-finger zoom; Reduce Motion (Systems Detail 16.1). Reshaped out of S0.2 after the S0.2b phone test felt clunky (decided 27 Nov 2026) | Golden: the grabbed place stays within 0.5 pt of the finger; no jumps near the poles; coast matches the scroll-view curve; screen point ↔ place round trip |
-| S0.3 Data v0 | 4 h | `build_world.py` for 60 North Atlantic airports; `build_landmask.py`; JBWorld decodes them | pytest data checks; decode test |
-| S0.4 Walking skeleton | 6 h | Tap two airports → `createRoute` → a dot flies the great circle → cash ticks by a placeholder profit through `Engine.advance` → save and reload | `apply(createRoute)`; `advance` raises cash; save round trip; split-advance invariant |
+| S0.5 Globe feel (built between S0.2b and S0.2c) | 5 h (breaker 6 h) | The place you touch stays under your finger, north up; coast like a scroll view; pinch about the fingers; double-tap and two-finger-tap zoom; Reduce Motion (Systems Detail 16.1). Reshaped out of S0.2 after the S0.2b phone test felt clunky (decided 27 Nov 2026). The one-finger slide zoom (double-tap, hold, slide) was built and cut after the phone test: hard to find and use (decided 28 Nov 2026) | Golden: the grabbed place stays within 0.5 pt of the finger; no jumps near the poles; a vertical drag with room on screen always reaches the pole; coast matches the scroll-view curve; screen point ↔ place round trip |
+| S0.6 Coastline detail (built after S0.5, before S0.2c) | 6 h (breaker 8 h) | Natural Earth 10m coastline + minor islands → three nested levels by zoom in `coastlines.json` (< 2 MB), with `data/coast_keep.csv`; unit vectors computed once at load; chunk culling and level choice in JBGeo; gesture zoom to 10 (Systems Detail 16.1, 16.6, 2.2). Added 28 Nov 2026: 110m drops the islands with airports (Bermuda, Nassau, Guam, Wake), and G0 should measure the real coastline. The zoom limit of 10 and its tests were already done in S0.5 | pytest: keep-list islands survive at every level; levels nested; no island ring under 4 points; Long Island separate from Connecticut; worst view ≤ 12,000 points; file < 2 MB. JBGeo: level per zoom; far-side and off-screen chunks culled; culling never drops a visible piece |
+| S0.3 Data v0 | 4 h | `build_world.py` for 60 North Atlantic airports; `build_landmask.py` (10m land + minor islands, 0.25°, cell centres; Systems Detail 2.2); JBWorld decodes them | pytest data checks; decode test; New York–Bermuda over 95% water; Gander–Shannon all water |
+| S0.4 Walking skeleton | 6 h | Tap two airports → `createRoute` → a dot flies the great circle → cash ticks by a placeholder profit through `Engine.advance` → save and reload | `apply(createRoute)`; `advance` raises cash; save round trip; split-advance invariant; `pick` returns the nearest weighted airport (Systems Detail 16.3) |
 
-**Gate G0 (decision):** does the Canvas globe hold 60 fps (≤ 8 ms per frame) on your test iPhone (iPhone 13) with coastlines, 20 arcs and a ring? Measured in a Release build on the phone with a stress scene (coastlines, 20 arcs, ring, auto-spin, at 1x and 4x zoom) plus a 30 s Instruments Animation Hitches run, during which you also drag, flick and pinch (S0.5). Pass: p95 draw time ≤ 8 ms and no hitches [tune]. iPhone model, refresh rate and iOS version go in ADR 0002. (Decided 27 Nov 2026.) Yes → ADR 0002 accepts Canvas. No → up to 4 h trying Metal, then decide. Also confirm the minimum iOS version.
+**Gate G0 (decision):** does the Canvas globe hold 60 fps (≤ 8 ms per frame) on your test iPhone (iPhone 13) with coastlines, 20 arcs and a ring? Measured in a Release build on the phone with a stress scene (the S0.6 coastlines, 20 arcs, ring, 40 labels, auto-spin, at 1x, 4x and 10x zoom, plus the densest view: Norway at zoom 6) plus a 30 s Instruments Animation Hitches run, during which you also drag, flick and pinch (S0.5). Pass: p95 draw time ≤ 8 ms and no hitches [tune]. iPhone model, refresh rate and iOS version go in ADR 0002. (Decided 27 Nov 2026; labels added 28 Nov 2026, because text is the Canvas renderer's likeliest weak spot; 10x zoom and the densest view added 28 Nov 2026 with S0.6.) Yes → ADR 0002 accepts Canvas. If only the densest view misses, first try one level coarser while moving (Systems Detail 16.6). No → up to 4 h trying Metal, then decide. Also confirm the minimum iOS version.
 
-### M1 — The range puzzle, grey box, North Atlantic (~35 h)
+### M1 — The range puzzle, grey box, North Atlantic (~41 h)
 
 | Slice | Appetite | What | Key tests |
 | --- | --- | --- | --- |
@@ -139,6 +140,7 @@ Hours are appetites. Each milestone lists its slices, what gets tested, and how 
 | S1.3 Planes and designs | 7 h | Dakota and Skymaster; wings, engines, tanks (cabin comes in M3); designs; workshop v0 with live ring and numbers (3) | Every part multiplier; design save and buy |
 | S1.4 Rules | 7 h | Runway factor, 60-minute band, route validation both ways (4.1–4.3) | Golden: Bermuda inside Dakota range but outside the band; Wake–Tokyo −1% / +11% once global data lands (M3) |
 | S1.5 Planning on the globe | 8 h | Drag from the selected airport to draw a route (other drags turn the globe; near the edge the globe turns toward the finger; Systems Detail 16.1 item 9); ring, gap in km, worst margin, band drawn red where broken; route card | UI flow test: draw a route, including one to a city on the far side of the globe |
+| S1.6 Legible globe | 6 h (breaker 8 h) | Reach tones; dots by room; names by rank with the stillness rule; "Also here" chips; the snap name above the thumb while drawing; card swipe between your cities and camera flights; return framing (Systems Detail 16.2–16.4). If G0 ran without labels, the first task rechecks the stress scene with 40 labels | Golden: the same view gives the same layout; no name is added while the camera moves; label layout ≤ 1 ms for 250 candidates; the Europe tap test on the phone (≥ 80% right first at zoom 1, ≥ 95% at zoom 2, every miss fixed in 1 tap [tune]) |
 
 **Ends with:** a cool-down. You can crack Shannon–Gander westbound by fitting extra tanks.
 
@@ -166,13 +168,13 @@ Hours are appetites. Each milestone lists its slices, what gets tested, and how 
 
 | Slice | Appetite | What | Key tests |
 | --- | --- | --- | --- |
-| S3.1 Global data | 8 h | All 166 airports, regional towns, surface tables, dated runways and names, coverage checks | pytest rules 3–5; Kai Tak and Johannesburg goldens |
+| S3.1 Global data | 8 h | All 166 airports, regional towns, surface tables, dated runways and names, coverage checks; rerun the S1.6 tap test on the full data (Europe and the US Northeast); every curated airport becomes a coastline keep point (Systems Detail 16.6) | pytest rules 3–5; Kai Tak and Johannesburg goldens; every curated airport has a coastline within 5 km at every level |
 | S3.2 Calendar | 7 h | Rate, dated items, away cap, "Coming next" (11) | Away cap holds; dated items wait; growth measured from the start network |
 | S3.3 Starts | 7 h | Six types, surplus kit (Skymaster for Reykjavík), seven starts and the start picker | **First-hour golden: every start has 2+ routes at $100+/fh** |
 | S3.4 History's airline | 8 h | Dated openings, share formula, pooling, ghost drawing (6.4, 8) | First-there 70/40; clamps; service terms |
 | S3.5 Cabins and comfort | 5 h | Fourth slot; sleeper, tourist, freighter, combi; comfort (3.2, 6.5) | Comfort table; seat rounding |
 
-### M4 — Cities and charters (~30 h)
+### M4 — Cities and charters (~37 h)
 
 | Slice | Appetite | What | Key tests |
 | --- | --- | --- | --- |
@@ -180,6 +182,7 @@ Hours are appetites. Each milestone lists its slices, what gets tested, and how 
 | S4.2 Identities | 12 h | Offers from traits; four identities × three tiers as modifiers (9.2–9.3) | One test per option (24) |
 | S4.3 Charters | 8 h | Board, seeded arrivals, pioneer, special load, event; dispatch in three taps (10) | Same board whether watched or away; nothing expires |
 | S4.4 Cargo and mail | 4 h | Light cargo model (6.7) | Free port and Combi effects |
+| S4.5 Inside the airport | 7 h (breaker 9 h) | `runways.json`; the "Go to {city}" button; the airport view with runways, buildings, pending outlines and planes; the first-arrival dive, once per city; the 0.2 s fade on later visits and only-what-changed; the Airport arrivals setting; "Back to globe" to the exact view; dated moves; Reduce Motion and VoiceOver (Systems Detail 16.5); ADR 0010. Grey box | The first arrival plays once per city and is recorded in the save; later visits fade; "Every time" plays the dive on every visit; Reduce Motion always fades; projection handoff within 0.5 pt; the plan built from city state is deterministic; dive frame ≤ 8 ms |
 
 ### M5 — The story (~30 h)
 
@@ -198,10 +201,10 @@ Hours are appetites. Each milestone lists its slices, what gets tested, and how 
 | Slice | Appetite | What |
 | --- | --- | --- |
 | S6.1 Style bible and theme | 6 h | Mid-century style bible (Draft 1 art rules below); `EraTheme` |
-| S6.2 Globe art pass | 9 h | Coastlines, airports as symbols, route lines, the ring, the date stamp in style; app icon draft from the style bible (AI art, section 7) |
+| S6.2 Globe art pass | 9 h | Coastlines, airports as symbols, route lines, the ring, the date stamp in style; the airport field plans, the dive's frames and the plane silhouettes in style; app icon draft from the style bible (AI art, section 7) |
 | S6.3 Card and screen art pass | 6 h | Cards, workshop, hangar, morning edition, front pages |
-| S6.4 Sound and haptics | 4 h | One sound and one haptic per event kind |
-| S6.5 First session | 6 h | The first session for all seven starts (Systems Detail 14) |
+| S6.4 Sound and haptics | 4 h | One sound and one haptic per event kind; the dive's rising ticks and settling chord |
+| S6.5 First session | 6 h | The first session for all seven starts (Systems Detail 14), opening with the first-arrival dive into each start's airport |
 
 ### M7 — Challenges, saves and polish (~28 h)
 
@@ -231,6 +234,7 @@ These are research and design tasks, mostly with Opus in the project. Each must 
 | Timetable pass on the *(verify)* airports | S3.1 |
 | History-airline networks for the seven starts | S3.4 |
 | FAA runway curves for real take-off lengths | S3.1 |
+| Runway ends for the 166 (OurAirports), checked against period layouts for the seven starts and the seven mid-era airport moves | S4.5 |
 | Event charter dates, airlift tonnage, the 1947 Kangaroo stop list | S4.3, S7.1 |
 | Mid-century style bible | S6.1 |
 
@@ -257,10 +261,11 @@ These are research and design tasks, mostly with Opus in the project. Each must 
 3. **S0.2a:** `build_coastlines.py` (Natural Earth 110m → simplified `coastlines.json`); orthographic projection and camera in JBGeo with unit tests; draw the coastlines in a Canvas.
 4. **S0.2b:** drag to rotate, pinch to zoom, one great-circle arc New York–London, one range ring; measure frame time on your iPhone.
 5. **S0.5 (three tasks):** the globe feel (Systems Detail 16.1): grab and zoom math in JBGeo; coast and UIKit gestures; an on-phone tuning pass.
-6. **S0.2c:** theme switch between two palettes; 20 arcs; decide gate G0 (or start the Metal fallback).
-7. **S0.3:** `build_world.py` for 60 North Atlantic airports, pytest checks, JBWorld decoding test.
+6. **S0.6 (three tasks):** coastline detail (Systems Detail 16.6): the 10m build script with its levels and pytest checks (2 h); levels and culling in JBGeo (2.5 h); the renderer, zoom 10 and a phone check (1.5 h). The zoom limit of 10 was already done in S0.5.
+7. **S0.2c:** theme switch between two palettes; 20 arcs and 40 labels; decide gate G0 (or start the Metal fallback).
+8. **S0.3:** `build_world.py` for 60 North Atlantic airports, `build_landmask.py`, pytest checks, JBWorld decoding test.
 
-Items 3, 4 and 6 are the three 2 h tasks of S0.2 (6 h, breaker 8 h). (Decided 27 Nov 2026.) S0.5 was reshaped out of S0.2 when the S0.2b phone test showed the drag mapping itself was wrong, which is the circuit breaker's "reshape" (1.3), not an extension. (Decided 27 Nov 2026.)
+Items 3, 4 and 7 are the three 2 h tasks of S0.2 (6 h, breaker 8 h). (Decided 27 Nov 2026.) S0.5 was reshaped out of S0.2 when the S0.2b phone test showed the drag mapping itself was wrong, which is the circuit breaker's "reshape" (1.3), not an extension. (Decided 27 Nov 2026.) S0.6 replaces S0.2a's 110m coastline before G0, so the gate measures the coastline the game will ship. (Decided 28 Nov 2026.)
 
 ---
 
@@ -268,7 +273,8 @@ Items 3, 4 and 6 are the three 2 h tasks of S0.2 (6 h, breaker 8 h). (Decided 27
 
 | Risk | Handling |
 | --- | --- |
-| The globe can't hold 60 fps | Found in session 4, not month 4 (gate G0); the renderer sits behind a protocol |
+| The globe can't hold 60 fps | Found in session 4, not month 4 (gate G0, now with labels and the full coastline at 10x zoom); the renderer sits behind a protocol; coastline levels and culling keep the points drawn per frame bounded (Systems Detail 16.6) |
+| The globe gets too crowded to read or tap | Rules decided before the data grows (Systems Detail 16.2–16.4); measured on the phone in S1.6 on the densest region, and again on the full data in S3.1 |
 | Passenger allocation balloons | Circuit breaker on S2.2; the Python model is the reference, so the target is known |
 | Data research is the long pole | It runs alongside the code, owned in the project, with "needed by" dates |
 | Design changes keep arriving | Only during cool-downs; mid-slice ideas go to Later |
@@ -297,6 +303,8 @@ Items 3, 4 and 6 are the three 2 h tasks of S0.2 (6 h, breaker 8 h). (Decided 27
 
 **After this plan:** weekly challenge and Game Center, timelapse and share card, the App Store page, launch of Era 3 as the first chapter, then eras in order of how much fun they add (Era 4, Era 2, then Eras 1, 5 and 6). Bring in an artist once there's revenue or traction.
 
+**Later (from the 28 Nov 2026 globe and airport work):** a bearing dial that sets names on the range ring at their bearing, as a one-hour experiment for crowded European hubs; pinching past zoom 10 as a second way into the selected airport; a chalked departures board on the airport card that becomes a split-flap board in 1956 *(verify the date of the first Solari boards)*; OpenStreetMap terminal and apron shapes for the seven starts' airports; a one-thumb zoom out, if zooming out with two fingers (pinch or two-finger tap) feels missing in play (the one-finger slide zoom failed the S0.5 phone test, 28 Nov 2026).
+
 ## 8. Working without the paid Apple membership
 
 Decided 26 Nov 2026. Felipe builds with a free Apple Account (Xcode's Personal Team) for as long as the plan allows. Limits checked 26 Nov 2026:
@@ -317,7 +325,7 @@ Decided 26 Nov 2026. Felipe builds with a free Apple Account (Xcode's Personal T
 - **Bundle IDs:** free builds use `com.felipecastellanos.JustBeyond.dev`. The App Store ID is registered only after enrolling. If Apple reports it as taken by the Personal Team, ask Developer Support to release it or choose another; testers carry their saves across with export.
 - **G2 moved into G3.** A friends' test over two weeks needs their own phones, so it needs TestFlight. Rather than pay before the art, rehearsal R2 checks the loop for free at the end of M5, and G3 starts with the old G2 group as wave A, with a day-7 circuit breaker.
 
-**The pay point:** once S7.1 and S7.3 are done (about 252 hours in), enrolling about a week before you want S7.2 and G3 to start (enrolment and the first Beta App Review can take days). From then on it's needed for S7.2 (iCloud), S7.4 and G3 (TestFlight), and everything after this plan (Game Center, In-App Purchase, App Store). Buying it then starts the $99 year when it's used: it covers G3 and launch.
+**The pay point:** once S7.1 and S7.3 are done (about 271 hours in), enrolling about a week before you want S7.2 and G3 to start (enrolment and the first Beta App Review can take days). From then on it's needed for S7.2 (iCloud), S7.4 and G3 (TestFlight), and everything after this plan (Game Center, In-App Purchase, App Store). Buying it then starts the $99 year when it's used: it covers G3 and launch.
 
 **What nothing before G3 can measure:** whether people come back unprompted. Rehearsal R2 and the bots cover pacing, crashes and days with nothing to decide; only G3's wave A answers the return question.
 

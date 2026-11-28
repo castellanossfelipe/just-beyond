@@ -1,1 +1,1 @@
-S0.5 task 3 is in PR 14; after the merge the next slice is S0.6 (coastline detail), before S0.2c, once the docs with S0.6 and Systems Detail 16.6 are in the repo; list its test list and wait for the OK (G0 later: Release build, build type noted by every frame time).
+S0.5 done, docs refreshed. Next: check Systems Detail 16.1 against the code, then S0.6 (coastline detail) before S0.2c: test list first, wait for OK.

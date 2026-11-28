@@ -1,8 +1,8 @@
-> **Snapshot of the Project doc "Just Beyond – Era 3 Systems Detail", dated 27 Nov 2026.** The Project is the source of truth. Edit it there, then re-copy here (refresh at each milestone cool-down).
+> **Snapshot of the Project doc "Just Beyond – Era 3 Systems Detail", dated 28 Nov 2026.** The Project is the source of truth. Edit it there, then re-copy here (refresh at each milestone cool-down).
 
 # Just Beyond – Era 3 Systems Detail
 
-Draft 2 · 25 Nov 2026 (26 Nov: `maxStops` is a playtest setting, 5.1 and 14; **27 Nov: this doc is now master for numbers**, and the number conflicts with the Balance Sheet are settled; 16.1 globe gestures) · Companion to the Era 3 Crossroads Spec. The Spec says *what* each system is and *why*; this doc says **exactly how it behaves**, so it can be coded and tested. The Software Design doc says how it's built.
+Draft 2 · 25 Nov 2026 (26 Nov: `maxStops` is a playtest setting, 5.1 and 14; **27 Nov: this doc is now master for numbers**, and the number conflicts with the Balance Sheet are settled; 16.1 globe gestures; **28 Nov: 16.2–16.5, a legible globe and entering an airport**; Screens and 14 updated to match; **28 Nov, later: 16.6 coastline detail; gesture zoom to 10 (16.1, 16.5); 2.2 land mask source; globe radius 187 pt (16.2, 18)**; **28 Nov, evening: 16.1 as phone-tuned: slide zoom cut, coast ends at 20 pt/s, a vertical drag always reaches the pole**) · Companion to the Era 3 Crossroads Spec. The Spec says *what* each system is and *why*; this doc says **exactly how it behaves**, so it can be coded and tested. The Software Design doc says how it's built.
 
 **How to read the numbers**
 
@@ -60,7 +60,8 @@ There is very little. Where needed (which charter arrives, which town it names),
 
 ### 2.2 Over-water distance and ocean membership
 
-- A **land mask** at 0.25° (built from Natural Earth by script) says whether a sample point is land or water.
+- A **land mask** at 0.25° says whether a sample point is land or water. It is built by script from Natural Earth 10m land plus 10m minor islands; a cell is land if its centre is land. It is used only by the rules here and in 2.3, never drawn (the globe draws the coastlines, 16.6). (Decided 28 Nov 2026.)
+- **Small islands read as water**, and so do most island airports' own cells: checked 28 Nov 2026, 15 of 24 island airports tested read water at 0.25° (Bermuda's cell is 4% land, Wake's 1%), and 9 still did at 0.1°. This is accepted: an island is shorter than one 25 km sample, so it moves over-water km by at most one sample, about $1 on a fare. A finer mask would be false precision. Whether an airport is on an island comes from the data (2.3 rule 2), never from the mask, and the 60-minute band is measured from airports, not the mask (4.3).
 - An **ocean map** at 1° says which ocean a water point belongs to: Atlantic, Pacific, Indian, Arctic, Southern, or an inland sea (Mediterranean, Caribbean, etc., which count as their parent ocean except the Mediterranean, Black and Caspian seas, which count as none).
 - **Over-water km** of a leg = 25 km × number of water samples. A leg's ocean = the ocean with the most samples, if over 1,000 km.
 
@@ -496,7 +497,7 @@ What the player does, what the game shows, and what it teaches. Times are real t
 | Time | What happens | It teaches |
 | --- | --- | --- |
 | 0:00 | Globe in mid-century style, seven start cities glowing. One card: pick a start. | The globe is the interface |
-| 0:30 | Camera flies to LaGuardia, 1946. A surplus Dakota in olive drab, already named. One line on the card: "Drag to a city to start a route." | Ownership from minute one |
+| 0:30 | The first-arrival dive (16.5) into LaGuardia, 1946: a surplus Dakota in olive drab, already named, lands on the plan. Then back out to the globe with New York selected. One line on the card: "Drag to a city to start a route." | Ownership from minute one |
 | 0:45 | Player drags from New York (already selected) to Montreal (16.1, item 9). The range ring, trip time and expected profit show while dragging; releasing opens the route card; "Fly". | Show the consequence before the commitment |
 | ~3:00 | The Dakota lands in Montreal (about 2.3 fh); cash ticks up with a sound. | Respond to everything |
 | 3:30 | A pioneer charter appears for Bermuda. The Dakota's ring reaches it, but the 60-minute band leaves a red gap over open water. The card shows the surplus Skymaster ($297,000) and a bar filling toward it. | The engine rule, without a tutorial |
@@ -531,33 +532,35 @@ Each start has its own data for steps 3–4: its first good route and its first 
 
 | Screen | What it is |
 | --- | --- |
-| **Globe** (home) | The whole interface: airports, routes (colored by profit), planes, range ring and band while planning, history's airline faintly, history markers, the date stamp |
-| **Bottom card** | One at a time: airport, route (planning and live), plane, charter board, level-up choice, purchase, paused routes |
+| **Globe** (home) | The whole interface: airports, routes (colored by profit), planes, range ring and band while planning, history's airline faintly, history markers, the date stamp. What is drawn and named depends on what you're doing (16.2) |
+| **Bottom card** | One at a time: airport, route (planning and live), plane, charter board, level-up choice, purchase, paused routes. With nothing selected, a slim airline strip (cash, date). Swipe an airport card or the strip to fly between your cities (16.4) |
+| **Airport view** | The globe's deepest zoom: the airport's field plan in the top half, its airport card below. Opened by the card's "Go to {city}" button (16.5) |
 | **Workshop** | Design a plane: four slots, the ring and the numbers updating live, save as a named design |
 | **Hangar** | Fleet, saved designs, liveries, keepsake wall, airline charter with titles, next 3 milestones per category |
 | **Morning edition** | Full screen on return; one swipe to dismiss |
 | **Front page** | Big moments and the era end |
 | **Start picker** | The seven starts with difficulty and a one-line identity |
 | **Challenges** | List, scenario map, result card |
-| **Settings** | Sound, haptics, reduce motion, data credits |
+| **Settings** | Sound, haptics, reduce motion, airport arrivals (First time / Every time, 16.5), data credits |
 
-**Accessibility:** cards support Dynamic Type; every airport, route and plane has a VoiceOver label and a list fallback for the globe; profit uses icon plus color; Reduce Motion replaces camera flights with fades and turns off the globe's coast (16.1).
+**Accessibility:** cards support Dynamic Type; every airport, route and plane has a VoiceOver label and a list fallback for the globe; profit uses icon plus color; Reduce Motion replaces camera flights with fades and turns off the globe's coast (16.1). The list fallback is ordered like the card swipe: what needs you first (16.4). Under Reduce Motion the airport view always fades in, whatever the arrivals setting; inside, VoiceOver reads the field plan as a list of runways, buildings and planes (16.5).
 
 ### 16.1 The globe under your finger
 
-Decided 27 Nov 2026 (Development Plan S0.5). **The place you touch stays under your finger, and north stays up.** The globe should feel like a ball under your thumb, not like a map that slides at its own speed.
+Decided 27 Nov 2026 (Development Plan S0.5); phone-tuned 28 Nov 2026. **The place you touch stays under your finger, and north stays up.** The globe should feel like a ball under your thumb, not like a map that slides at its own speed.
 
 | Gesture | What it does |
 | --- | --- |
 | One-finger drag | Turns the globe so the place under your finger stays under it (1) |
 | Lift while moving | The globe coasts and slows like an iOS scroll view (5) |
 | Touch while it coasts or zooms | Stops it at once and grabs |
-| Pinch | Zooms about the point between your fingers (3); moving both fingers also turns the globe, as a drag does |
+| Pinch | Zooms about the point between your fingers (3); moving both fingers also turns the globe, as a drag does. A finger landing or lifting restarts the pinch scale, so it never jumps (4) |
 | Double-tap | Zooms in ×2 about the tap (6) |
-| Double-tap, hold and slide | One-handed zoom: slide up to zoom in, down to zoom out, about the tap point |
-| Two-finger tap | Zooms out ×2 |
+| Two-finger tap | Zooms out ×2 about the point between the fingers (6); ignored if those touches already pinched or dragged |
 | Twist, tilt | Nothing. North stays up and the globe is never tilted |
 | Drag from the selected airport | Draws a route instead of turning the globe (9; from S1.5) |
+
+*Cut 28 Nov 2026:* double-tap, hold and slide (one-finger zoom). It was built and failed the phone test: hard to find and use, even for its designer, and a quick tap followed by a downward drag could zoom out by mistake.
 
 1. **Grab.** Each touch update moves the camera so the place under the previous finger position goes to the new one. Touch steps longer than 2 pt [tune] are split into 2 pt steps. In unit-disc coordinates (offset from the screen middle ÷ (globe radius × zoom), y up), for the place (φ, λ) under the finger and the camera centre (φ0, λ0), with Δ = λ − λ0 and depth d = sin φ sin φ0 + cos φ cos φ0 cos Δ:
    ```
@@ -567,19 +570,107 @@ Decided 27 Nov 2026 (Development Plan S0.5). **The place you touch stays under y
    cameraStep = (JᵀJ + μ²·I)⁻¹ · Jᵀ · fingerStep
    ```
    Then clamp φ0 to ±90° and wrap λ0 to [−180°, 180°). Where J is well conditioned (most of the visible globe), μ = 0 and the place stays exactly under the finger. Where it isn't (near the rim, and places near a pole being dragged sideways), the camera turns no faster than 1/σc and the finger slips a little; the globe never jumps or freezes.
+   **Second solve.** One solve is only a straight-line estimate, so where a step needs no damping a second solve aims at the same point again (it cut the golden drag error from 0.862 pt to 0.0024 pt). Damped steps get no second solve. A step's whole turn is capped at its finger travel in globe radii (zoom included) ÷ σc radians, in the same direction.
+   **A vertical drag never stalls.** Wherever the grab has to slip (damped near the rim and poles, or the finger is past the rim), latitude turns at least as far as the finger moves up or down: one radian per globe radius × zoom of finger travel (on the iPhone 13, 100 pt is about 31° at zoom 1 and 3.1° at zoom 10), in the finger's direction (down brings north into view), stopping at ±90°. It is a minimum, not an extra turn, and it does not apply to zoom corrections (3). So with room on screen, a vertical drag always reaches the pole. (Decided 28 Nov 2026: on the phone the globe locked short of the pole.)
    **Why north stays up:** winds, "westbound", the era maps and the date stamp all read north-up, and map apps change heading only when you twist. **The cost:** with north fixed, a place near a pole can't follow a long sideways drag (its parallel is narrow on screen), so the finger slips there. That is the honest price of north-up, and the damping keeps it smooth. A free trackball (Shoemake's arcball, Bell's) avoids the slip but rolls north away; rejected.
-2. **Off the globe.** A touch outside the disc grabs the nearest point of the rim (radius 0.999 of the disc).
-3. **Zoom about a point.** Zoom stays 1–8. When it changes, the place that was under the pinch midpoint (or the tap) is moved back under it with the grab step. Because the grab works in screen points, a drag turns the globe less per point the closer you zoom in; there is no separate sensitivity setting.
-4. **Fingers landing or lifting.** When the number of touches changes, the grab restarts from the new touch point (the midpoint, for two fingers) without moving the globe, so a second finger never makes it jump.
-5. **Coast.** The shell keeps the last camera states with their touch timestamps. On lift, the coast's angular velocity ω = camera change over the last 80 ms [tune] ÷ that time (zero if the finger rested). Its speed at the screen middle is s = globe radius × zoom × √(ω_φ² + (cos φ0 · ω_λ)²). No coast if s < 100 pt/s [tune]; s is capped at 4,000 pt/s [tune]. ω decays by 0.998 per millisecond, the default deceleration of an iOS scroll view [V], in closed form (`ω(t) = ω₀ · 0.998^t_ms`, turn so far = ω₀ · (1 − 0.998^t_ms) ÷ (1000 · −ln 0.998) s), so one long step equals many short ones; total turn ≈ ω₀ × 0.5 s. It ends when s < 10 pt/s [tune]. At ±90° the latitude part stops and the longitude part carries on. JBGeo reads no clock: the shell passes elapsed seconds each frame.
-6. **Double-tap zoom** animates over 0.3 s [tune], easing out, zooming about the tap (3). Any touch stops it where it is.
+2. **Off the globe.** A touch outside the disc grabs the nearest point of the rim (radius 0.999 of the disc). The same holds for where the finger moves to: moving further out does not move the grab point, and a vertical move off the globe tilts the globe as in item 1. (28 Nov 2026.)
+3. **Zoom about a point.** Zoom stays 1–10 [tune] (under gestures; only the first-arrival dive into an airport goes past 10, 16.5). Zoom 10 is 3.4 km per pt on the iPhone 13, about 1,330 km across the screen (16.6). (Raised from 8, decided 28 Nov 2026.) When it changes, the place that was under the pinch midpoint (or the tap) is moved back under it with the grab step. Because the grab works in screen points, a drag turns the globe less per point the closer you zoom in; there is no separate sensitivity setting.
+4. **Fingers landing or lifting.** When the number of touches changes, the grab restarts from the new touch point (the midpoint, for two fingers) without moving the globe, so a second finger never makes it jump. A pinch also restarts its scale whenever the number of fingers changes, so a finger landing or lifting never zooms. (28 Nov 2026.)
+5. **Coast.** The shell keeps the last camera states with their touch timestamps. On lift (the last sample), the coast's angular velocity ω = camera change over the last 80 ms [tune] ÷ the real time of that stretch. The stretch runs from the newest sample at least 80 ms older than the last one (about 83 ms at 60 Hz), or from the first sample if the gesture was shorter; the divisor is the real time between them. iOS recognises a drag only after the finger has moved some way, so the shell notes when the movement really began: the last moment the finger was within 1 pt [tune] of where it landed. A flick is timed from there, so resting your thumb and then flicking still coasts. Longitude change is added up sample by sample, each the short way round, so crossing the antimeridian, or turning more than 180° in the stretch, keeps its direction. A finger that rested for 80 ms or more gives ω = 0; a shorter rest lowers it. Fewer than two samples, or no time between them: no coast. A gesture that had two fingers does not coast: zooming about the fingers moves the centre, and two fingers rarely lift together (decided 28 Nov 2026). Its speed at the screen middle is s = globe radius × zoom × √(ω_φ² + (cos φ0 · ω_λ)²). No coast if s < 100 pt/s [tune]; s is capped at 4,000 pt/s [tune], scaling both parts of ω together so the direction is kept. ω decays by 0.998 per millisecond, the default deceleration of an iOS scroll view [V], in closed form (`ω(t) = ω₀ · 0.998^t_ms`, turn so far = ω₀ · (1 − 0.998^t_ms) ÷ (1000 · −ln 0.998) s), so one long step equals many short ones; if it never ended, the total turn would be ω₀ × 0.4995 s. The end time is worked out once, at lift, from the speed s₀ and cos φ0 at lift: the coast ends when s falls below 20 pt/s [tune] (raised from 10, decided 28 Nov 2026), so the total turn is ω₀ × 0.4995 s × (1 − 20 ÷ s₀). The end is not rechecked each frame, so a sideways coast at a pole is not cut short. At ±90° the latitude part stops and the longitude part carries on. JBGeo reads no clock: the shell passes elapsed seconds each frame.
+6. **Double-tap and two-finger-tap zoom** animate over 0.3 s [tune], zooming about the tap or the point between the fingers (3). The easing is a cubic ease-out applied to the zoom on a log scale, so ×2 is about ×1.83 halfway. A zoom shortened by the limit (6 to 10, say) still takes 0.3 s. Any touch stops it where it is. (Easing details decided 28 Nov 2026.)
 7. **Taps never wait.** A single tap (selecting an airport, from S0.4) is not delayed to see whether a double-tap follows; a double-tap on an airport selects it and zooms.
-8. **Reduce Motion.** Drag and pinch still track the finger exactly: that is direct manipulation, not animation. The globe does not coast: it stops when you lift (Apple's own physics effects track the finger directly under Reduce Motion [V]). Double-tap zooms jump instead of animating. Camera flights fade (Accessibility, above).
+8. **Reduce Motion.** Drag and pinch still track the finger exactly: that is direct manipulation, not animation. The globe does not coast: it stops when you lift (Apple's own physics effects track the finger directly under Reduce Motion [V]). Double-tap and two-finger-tap zooms jump instead of animating. Camera flights fade (Accessibility, above).
 9. **Routes vs turning (S1.5).** A drag that starts within 22 pt of the selected airport (a 44 pt target, Apple's minimum [V]) draws a route; any other drag turns the globe. Only the selected airport is live, so a crowded coast at zoom 1 never blocks turning. While drawing, when the finger is within 44 pt [tune] of the globe's rim or the screen edge, the globe turns toward it at up to 60° per second [tune], so one thumb can draw New York–London from a whole-globe view. The airport under the finger is found with the same screen point ↔ place functions as the grab.
 
-**Later (not built yet):** camera flights (S0.4, S6.5) move the centre along the great circle and the zoom on a log scale, and any touch stops them.
+**Camera flights** are specified in 16.4.
 
-**Sources:** grabbing the point under the pointer on an orthographic globe: [Jason Davies, Rotate the World](https://www.jasondavies.com/maps/rotate/), [d3-versor](https://github.com/d3/versor) [V]; trackballs and their rim problem: [Shoemake 1992](https://graphicsinterface.org/wp-content/uploads/gi1992-18.pdf), [Henriksen, Sporring & Hornbæk 2004](https://core.ac.uk/download/269088256.pdf) [V]; scroll-view deceleration 0.998 per ms and projection: [Apple, Designing Fluid Interfaces (WWDC18)](https://developer.apple.com/videos/play/wwdc2018/803/), [Schnorr](https://medium.com/ios-os-x-development/gestures-in-fluid-interfaces-on-intent-and-projection-36d158db7395) [V]; one-finger zoom and north-only-by-twist in map apps: [Google Earth help](https://developers.google.com/maps/documentation/earth/navigate-the-globe), [Cult of Mac on Apple Maps](https://www.cultofmac.com/how-to/how-to-use-one-handed-maps-mode-ios-11) [V]; Reduce Motion: [App Store Connect, Reduced Motion criteria](https://developer.apple.com/help/app-store-connect/manage-app-accessibility/reduced-motion-evaluation-criteria), [Apple accessibility-dev list](https://lists.apple.com/archives/accessibility-dev/2017/Dec/msg00007.html) [V]; 44 pt targets: [Apple design tips](https://developer.apple.com/design/tips) [V]. The damped grab was checked in a quick simulation (27 Nov 2026): exact within 0.5 pt for grabs at the middle and halfway out to the sides at 0° and ±45° (grabs toward a pole or the rim slip more), no step over 1.7° per 2 pt near the poles; the [tune] values are for the on-phone pass in S0.5.
+**Sources:** grabbing the point under the pointer on an orthographic globe: [Jason Davies, Rotate the World](https://www.jasondavies.com/maps/rotate/), [d3-versor](https://github.com/d3/versor) [V]; trackballs and their rim problem: [Shoemake 1992](https://graphicsinterface.org/wp-content/uploads/gi1992-18.pdf), [Henriksen, Sporring & Hornbæk 2004](https://core.ac.uk/download/269088256.pdf) [V]; scroll-view deceleration 0.998 per ms and projection: [Apple, Designing Fluid Interfaces (WWDC18)](https://developer.apple.com/videos/play/wwdc2018/803/), [Schnorr](https://medium.com/ios-os-x-development/gestures-in-fluid-interfaces-on-intent-and-projection-36d158db7395) [V]; north-only-by-twist in map apps: [Google Earth help](https://developers.google.com/maps/documentation/earth/navigate-the-globe), [Cult of Mac on Apple Maps](https://www.cultofmac.com/how-to/how-to-use-one-handed-maps-mode-ios-11) [V] (those apps also zoom with one finger by double-tap, hold and slide; we built that and cut it, above); Reduce Motion: [App Store Connect, Reduced Motion criteria](https://developer.apple.com/help/app-store-connect/manage-app-accessibility/reduced-motion-evaluation-criteria), [Apple accessibility-dev list](https://lists.apple.com/archives/accessibility-dev/2017/Dec/msg00007.html) [V]; 44 pt targets: [Apple design tips](https://developer.apple.com/design/tips) [V]. The damped grab was checked in a quick simulation (27 Nov 2026): exact within 0.5 pt for grabs at the middle and halfway out to the sides at 0° and ±45° (grabs toward a pole or the rim slip more), no step over 1.7° per 2 pt near the poles. The [tune] values were set in the on-phone pass of S0.5 (28 Nov 2026): coast end 20 pt/s and zoom limit 10 changed; the others (100 and 4,000 pt/s, 80 ms, 0.3 s, σc 0.25, 2 pt steps) stayed.
+
+### 16.2 What the globe draws
+
+Decided 28 Nov 2026 (Development Plan S1.6). **The globe draws what you're doing, not everything that exists.** On an iPhone 13 at zoom 1, Europe's curated airports sit about 22 pt apart, so a 44 pt fingertip covers four and only a few names fit; from zoom 2–3 they are easy to tell apart.
+
+| State | Full ink | Accent, named | Quiet (~25% [tune]) |
+| --- | --- | --- | --- |
+| Browsing (nothing selected) | Your cities and routes | Cities with a pending choice, paused route or waiting charter | All else; history's airline dashed, hidden below zoom 1.5 unless a pair you serve is shared [tune] |
+| Airport selected | It, its routes, the cities they reach | — | Other routes at 40% [tune] |
+| Planning (a plane at the selected airport) | Cities with outbound margin ≥ 0 (4.1) | **Just beyond**: margin from −25% to 0 [tune], or blocked only by the band (4.3), named with the gap ("+340 km", "band"); at most 3, smallest gap first [tune] | Far: still drawn and tappable, never named |
+
+1. **Dots.** Every curated airport always has a dot: 4 pt, shrinking to 2.5 pt at zoom 1 [tune]. A regional town is drawn only if it is at least 28 pt [tune] from every dot already drawn (curated first, then towns by population), so towns appear sooner over empty oceans than in crowded Europe.
+2. **Names.** Candidates in order: the selected airport; the snap target while drawing (16.3); just beyond; your cities by passengers this year; the next history marker in view; gateways (G) by population; crossroads candidates (X); the rest by population; regional towns only from zoom 4 [tune]. Each tries four spots (right, left, above, below) and is placed if it overlaps no placed name, no higher-ranked dot, the card and the screen edge (4 pt padding [tune]). At most 12 names on screen [tune]. Points within 15° of the rim get no name [tune].
+3. **Stillness.** While the camera moves faster than 20 pt/s at the screen middle [tune], names are only removed (when they collide or leave the screen), never added. Below that speed the layout reruns and new names fade in over 0.12 s [tune]. A placed name keeps its spot unless it collides, so names never jitter.
+4. **Routes.** Lines that share a city fan apart by 2 pt [tune] over their first 20 pt, so a hub shows how many lines it has. The selected airport's routes draw bold.
+5. **Pure.** The layout is a pure function in JBGeo of projected points, ranks, label sizes (measured by the shell) and keep-out rectangles: the same view always gives the same layout.
+
+### 16.3 Picking
+
+Decided 28 Nov 2026 (Development Plan S0.4, S1.6).
+
+1. **Tap.** Candidates are the drawn airports within 30 pt of the touch [tune]. Score = screen distance ÷ weight, with weight 1.5 for your cities, cities in reach and just beyond, 1.0 for others, 0.6 for far [tune]. The lowest score wins and is selected at once (16.1 item 7). A tap with no candidate deselects.
+2. **Also here.** If other candidates were within 30 pt, the airport card shows up to 3 of them as chips, best first. A chip selects that airport without moving the camera. A wrong first guess costs one tap.
+3. **Drawing a route.** While drawing (16.1 item 9), the pick runs continuously under the finger with a 36 pt radius [tune]. The snapped city rings; a soft haptic marks each change of snap; its name and worst margin float 64 pt above the touch [tune] (below it near the top edge), because the finger hides what it touches. Lifting with no snap cancels.
+4. **No clusters**, and an ambiguous tap never zooms. A double-tap still zooms (16.1).
+
+### 16.4 Getting around
+
+Decided 28 Nov 2026 (Development Plan S1.6).
+
+1. **Card swipe.** Swiping an airport card left or right flies to the next or previous of your cities and shows its card. Order: cities with a pending choice (oldest first), then a paused route, then a waiting charter, then the rest by passengers this year. With nothing selected, the resting card is the airline strip (cash, date); swiping it starts at the top of the list.
+2. **Camera flights.** From one view (centre, zoom) to another, the centre moves along the great circle and the zoom follows van Wijk & Nuij's smooth and efficient path with ρ = 1.4 [tune], so long trips zoom out just enough to keep their bearings. Duration 0.4–0.8 s by path length [tune], easing in and out. Any touch stops the flight where it is. JBGeo returns the view at a fraction of the flight; the shell passes elapsed time. Under Reduce Motion a flight is a 0.2 s fade [tune].
+3. **Return framing.** At launch and when the morning edition is dismissed, the camera centres on the edition's prompt city (else your home city) at the largest zoom that fits all your cities with 24 pt padding [tune], never below zoom 1. It never moves the camera while a finger is down.
+
+### 16.5 Inside an airport
+
+Decided 28 Nov 2026 (Development Plan S4.5). **The airport is the globe's deepest zoom.**
+
+1. **Way in.** Selecting an airport never enters it. The airport card has one button, **"Go to {city}"**, for any airport, served or not (so you can study an unserved runway before you fly there). It opens the airport view: the field plan in the top half, the airport card below.
+2. **First arrival.** The first time you press "Go to {city}" after the city becomes yours (your first route or charter landing there; your start city at the start of the game, 14), the full dive plays, about 1.6 s [tune]:
+   - 0.00–0.50 s: a camera flight (16.4) to the airport at zoom 10 (about 1,330 km across the screen); other airports fade.
+   - 0.50–1.15 s: four nested square frames, labelled 1,000 km, 100 km, 10 km and 1 km, rush outward past the screen edge, each with a soft tick rising in pitch and a light haptic. The coastline fades to nothing by the 100 km frame, because the coastline data is visibly wrong at close range (at that scale even level 2's ~2 km accuracy is several points off, 16.6).
+   - 1.15–1.60 s: the runways draw themselves at true heading with their lengths; your plane lands on the plan (if none is based there yet, the first plane that served it); buildings, the name and the date stamp ("Gander · 1949") appear; a settling chord and one firmer haptic.
+   Each city's first arrival plays once per save; the save records which cities have had theirs.
+3. **Every other visit:** no zoom. The airport view fades in over 0.2 s [tune]. Only what changed since your last visit animates: a runway extension draws onto the runway end, a pending choice appears as a dotted building outline, a newly based plane taxis in.
+4. **Setting: Airport arrivals.** "First time" (default) or "Every time". With "Every time", every press of "Go to {city}" plays the full dive. Any touch during a dive jumps to its end.
+5. **Way out.** "Back to globe" on the card, or pinch out: a 0.2 s fade [tune] back to the exact view you left.
+6. **The plan.** A local east-north projection in metres about the airport's reference point, which matches the orthographic globe near the centre, so the dive's handoff has no jump. Runways come from `runways.json` at true heading, drawn at the period base length (4.2) plus your extensions, centred on the modern centreline, widened ×3 for legibility [tune], with their lengths written along them. Terminal size by city level; one small glyph per option bought (hotel, hangar, radio mast, warehouses); a dotted outline for each pending choice. Your planes based here as top-down silhouettes in their liveries on the apron; at most one moves at a time (taxi, or a take-off roll with a separating shadow), placed from sim time and the route schedule. Every item on the plan is a shortcut to the same card the airport card offers; the card stays the control surface.
+7. **Dated moves.** On the date a city's airport moves (Idlewild and the others, Airports doc section 4), the plan's next entry becomes the field; the previous one stays as a faint outline with its name and years ("LaGuardia, 1946–48").
+8. **Reduce Motion:** always the 0.2 s fade, whatever the setting; nothing taxis. **VoiceOver:** "Go to {city}" is a button; inside, the plan reads as a list: runways (heading, length, and what your designs need), buildings (bought and pending), planes (name and route).
+9. **Tilt:** none. Gestures keep zoom 1–10 (16.1); only the first-arrival dive passes it.
+
+**Sources (16.2–16.5):** priority and collision hiding: [MapKit clusteringIdentifier](https://developer.apple.com/tutorials/data/documentation/mapkit/mkannotationview/clusteringidentifier.md) [V]; fewer objects at smaller scale: Töpfer & Pillewizer 1966, via [Jiang](https://arxiv.org/pdf/1102.1561) [V]; occlusion and showing the target away from the finger: [Vogel & Baudisch 2007](https://projects.csail.mit.edu/hci-reading/papers/chi2007-vogel.pdf) [V]; nearest-target picking: [Grossman & Balakrishnan 2005](https://www.dgp.toronto.edu/papers/tgrossman_CHI2005.pdf) [V]; zoom-and-pan path: [van Wijk & Nuij 2003](https://typeset.io/pdf/smooth-and-efficient-zooming-and-panning-339ds7zmn1.pdf), [d3 interpolateZoom](https://d3js.org/d3-interpolate/zoom), [Reach & North](https://arxiv.org/pdf/1801.09358) [V]; Powers of Ten: [IDFA](https://www.idfa.nl/en/film/9937e72b-8f4c-476c-b1fb-bc1898bed296/wd), [Cooper Hewitt](https://collection.cooperhewitt.org/objects/35457285) [V]; runway ends: [OurAirports data](https://ourairports.com/data/) *(verify coverage)*. The globe radius at zoom 1 on the iPhone 13 is 187 pt (the 390 pt screen width halved, less 8 pt; from the S0.2 code); the 22 pt spacing uses it (it was 21 pt at an assumed 180 pt).
+
+### 16.6 Coastline detail
+
+Decided 28 Nov 2026 (Development Plan S0.6). **Real islands stay on the map at every zoom, and detail never costs frames.**
+
+**What each zoom shows** (iPhone 13, globe radius 187 pt, 1 pt ≈ 0.166 mm):
+
+| Zoom | km per pt | Screen width | Smallest visible shape (~2 pt) | Scale on screen |
+| --- | --- | --- | --- | --- |
+| 1 | 34 | the whole globe | ~70 km | 1:206M |
+| 4 | 8.5 | 3,300 km | ~17 km | 1:51M |
+| 8 | 4.3 | 1,660 km | ~9 km | 1:26M |
+| 10 | 3.4 | 1,330 km | ~7 km | 1:21M |
+
+At zoom 10 Long Island (6–9 pt wide) and Long Island Sound (1.5–9 pt) read clearly; Manhattan is a 1 pt sliver and the East River is under 0.3 pt, so anything that small belongs to the airport view (16.5). Picking needs zoom 2–3 (16.2); checking a tight gap against a coast or island needs zoom 6–8 (a 1% Dakota gap of 15 km is 0.4 pt at zoom 1 and 3.5 pt at zoom 8).
+
+1. **Source.** Natural Earth 10m coastline plus 10m minor islands coastline, v5.1.2 (public domain), built by `tools/build_coastlines.py` with the standard library only. 10m suits the screen scale to about zoom 20, so nothing finer is needed on the globe.
+2. **Three nested levels.** Each level's points are a subset of the next level's (simplified coarse to fine), so switching level never moves a point that stays.
+
+   | Level | Drawn at zoom | Coast within | Islands kept |
+   | --- | --- | --- | --- |
+   | 0 | below 2.5 | 0.15° (~17 km) [tune] | 50 km across or more, plus any near a keep point (3) |
+   | 1 | 2.5 to below 6 | 0.05° (~5.5 km) [tune] | 10 km across or more, plus any near a keep point |
+   | 2 | 6 and up | 0.02° (~2.2 km) [tune] | every island |
+
+   Each level's error is about 0.5 pt or less at its lowest zoom (0.65 pt at zoom 10). Coordinates are stored to 2 decimals (~1.1 km, 0.33 pt at zoom 10).
+3. **Keep points.** `data/coast_keep.csv` lists places whose island must draw at every level: Bermuda, Nassau, Guam, Wake, Midway, Canton, Johnston, Kwajalein, Tarawa, Iwo Jima, Ascension, Santa Maria, Lajes, Cocos and Malta. From S3.1 every curated airport is a keep point too. An island within 30 km of a keep point is kept at every level; at zoom 1 it shows as a 1 pt speck.
+4. **No island is erased.** Simplification never leaves an island ring with fewer than 4 points.
+5. **Culling.** Lines are split into chunks of at most 128 points, each with a bounding circle. A chunk is projected and drawn only if it can touch the screen (near side of the globe, inside the screen's cap). Level choice and culling are pure functions in JBGeo.
+6. **Budget.** At most 12,000 coastline points stroked in the worst view [tune], checked at build time over a grid of views (every 5°, each level at its lowest zoom). Measured 28 Nov 2026: worst views about 10,000–13,000 points (Norway and Europe just after a level switch), most views 2,000–8,000, against about 3,400 for today's 110m at zoom 1. If G0 misses with this, the globe draws one level coarser while the camera moves (under about 1.5 pt of change while moving).
+7. **The coastline is drawn only.** The rules use the land mask (2.2), never the coastlines.
+
+**Measured 28 Nov 2026 (Natural Earth v5.1.2):** 110m has none of Bermuda, Guam, Wake, Midway, Canton, the Azores, Malta, Mauritius, Ascension or Tarawa, and the Bahamas only as one crude shape. 50m adds Bermuda, Guam, the Azores, Nassau, Midway and Canton but still misses Wake, Iwo Jima, Kwajalein, Johnston and Cocos. 10m plus minor islands has them all, and has Long Island and Manhattan as their own islands. Level sizes: level 0 about 12,600 points, level 1 about 45,000, level 2 about 108,000; one nested file about 1.8 MB *(verify at build)*. Sources: [Natural Earth](https://www.naturalearthdata.com/) [V], [natural-earth-vector v5.1.2](https://github.com/nvkelso/natural-earth-vector) [V].
 
 ---
 
@@ -613,3 +704,6 @@ These come straight from the research and must pass in the Swift code. Expected 
 - [ ] `noSurface` and `slowSurface` tables for the curated pairs
 - [ ] Event charter dates *(verify)*
 - [ ] History-airline networks for the seven starts
+- [ ] Runway-end coverage in OurAirports for the 166, including closed fields such as Kai Tak *(verify)*
+- [x] The globe radius at zoom 1 on the iPhone 13: 187 pt, from the S0.2 code (closed 28 Nov 2026; 16.2 and 16.5 updated)
+- [ ] Coastline level tolerances and the 12,000-point budget: confirm on the phone at G0 (16.6)
