@@ -14,8 +14,16 @@ public struct Vector3: Codable, Equatable, Sendable {
         x * other.x + y * other.y + z * other.z
     }
 
+    func cross(_ o: Vector3) -> Vector3 {
+        Vector3(x: y * o.z - z * o.y, y: z * o.x - x * o.z, z: x * o.y - y * o.x)
+    }
+
+    var length: Double {
+        dot(self).squareRoot()
+    }
+
     var normalized: Vector3 {
-        self * (1 / dot(self).squareRoot())
+        self * (1 / length)
     }
 
     static func + (a: Vector3, b: Vector3) -> Vector3 {
