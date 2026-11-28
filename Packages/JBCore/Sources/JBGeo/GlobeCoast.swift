@@ -40,11 +40,18 @@ public struct GlobeCoast: Codable, Equatable, Sendable {
     /// `samples` are in time order; the last one is the lift. Nil if the globe does not coast.
     public init?(samples: [CameraSample], zoom: Double, viewport: GlobeViewport) {
         guard let lift = samples.last,
-              let reference = samples.last(where: { $0.timeSeconds <= lift.timeSeconds - Self.windowSeconds })
+              let from = samples.lastIndex(where: { $0.timeSeconds <= lift.timeSeconds - Self.windowSeconds })
         else { return nil }
+        let window = samples[from...]
+        let reference = samples[from]
+        // Added up update by update, each the short way, so the antimeridian is no jump and a
+        // turn of more than half way round keeps its direction.
+        let lonTurn = zip(window, window.dropFirst()).reduce(0) {
+            $0 + remainder($1.1.centre.lonDeg - $1.0.centre.lonDeg, 360)
+        }
         let seconds = lift.timeSeconds - reference.timeSeconds
         let latRate = (lift.centre.latDeg - reference.centre.latDeg) / seconds
-        let lonRate = (lift.centre.lonDeg - reference.centre.lonDeg) / seconds
+        let lonRate = lonTurn / seconds
 
         // How fast the screen middle moves, in points a second.
         let alongParallel = cos(lift.centre.latDeg * .pi / 180) * lonRate
