@@ -82,3 +82,10 @@ func slowReleaseDoesNotCoast(lat: Double, zoom: Double) {
     #expect(coast(pointsPerSecond: 99) == nil)
     #expect(coast(pointsPerSecond: 101) != nil)
 }
+
+@Test func restingBeforeLiftDoesNotCoast() {
+    let flung = samples(lonDegPerSecond: degPerSecond(pointsPerSecond: 1_000))
+    // A still finger sends no updates; the next sample is the lift, 100 ms after the last move.
+    let lift = CameraSample(timeSeconds: 100.1, centre: flung[flung.count - 1].centre)
+    #expect(GlobeCoast(samples: flung + [lift], zoom: 1, viewport: viewport) == nil)
+}
