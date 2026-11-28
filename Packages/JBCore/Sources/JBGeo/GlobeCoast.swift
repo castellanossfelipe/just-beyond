@@ -15,8 +15,16 @@ public struct GlobeCoast: Codable, Equatable, Sendable {
     public private(set) var latDegPerSecond: Double
     public private(set) var lonDegPerSecond: Double
 
+    /// How far back from the lift the turning is measured. [tune]
+    static let windowSeconds = 0.08
+
     /// `samples` are in time order; the last one is the lift. Nil if the globe does not coast.
     public init?(samples: [CameraSample], zoom: Double, viewport: GlobeViewport) {
-        return nil
+        guard let lift = samples.last,
+              let reference = samples.last(where: { $0.timeSeconds <= lift.timeSeconds - Self.windowSeconds })
+        else { return nil }
+        let seconds = lift.timeSeconds - reference.timeSeconds
+        latDegPerSecond = (lift.centre.latDeg - reference.centre.latDeg) / seconds
+        lonDegPerSecond = (lift.centre.lonDeg - reference.centre.lonDeg) / seconds
     }
 }
