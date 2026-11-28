@@ -1,6 +1,8 @@
 /// The shortest path over the sphere between two places.
 public enum GreatCircle {
     public static func arc(from start: LatLon, to end: LatLon) -> [Vector3] {
-        [start.unitVector, end.unitVector]
+        let a = start.unitVector
+        let b = end.unitVector
+        return [a, (a + b).normalized, b]
     }
 }
