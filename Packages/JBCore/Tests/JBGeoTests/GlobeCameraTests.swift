@@ -37,6 +37,42 @@ private let middle = ScreenPoint(x: 195, y: 422)
     #expect(view.centre.latDeg > 30)
 }
 
+/// Drags a finger in a straight line, one touch update every `stepLength` points.
+private func drag(_ camera: inout GlobeCamera, from start: ScreenPoint, to end: ScreenPoint, stepLength: Double = 2) {
+    let steps = Int((hypot(end.x - start.x, end.y - start.y) / stepLength).rounded())
+    var previous = start
+    for step in 1...steps {
+        let t = Double(step) / Double(steps)
+        let next = ScreenPoint(x: start.x + (end.x - start.x) * t, y: start.y + (end.y - start.y) * t)
+        camera.grab(from: previous, to: next, in: viewport)
+        previous = next
+    }
+}
+
+private func distance(_ a: ScreenPoint, _ b: ScreenPoint) -> Double {
+    hypot(a.x - b.x, a.y - b.y)
+}
+
+/// Golden (Systems Detail 16.1). Grabs at the middle and halfway out to each side, 40 pt drags
+/// in eight directions.
+@Test(arguments: [0.0, 45, -45], [1.0, 4, 8])
+func placeUnderFingerStaysUnderFinger(lat: Double, zoom: Double) throws {
+    var worst = 0.0
+    for offset in [0, -viewport.globeRadius / 2, viewport.globeRadius / 2] {
+        for eighth in 0..<8 {
+            var view = camera(lat: lat, zoom: zoom)
+            let start = ScreenPoint(x: middle.x + offset, y: middle.y)
+            let angle = Double(eighth) * .pi / 4
+            let end = ScreenPoint(x: start.x + 40 * cos(angle), y: start.y + 40 * sin(angle))
+            let grabbed = try #require(view.place(at: start, in: viewport))
+            drag(&view, from: start, to: end)
+            let now = try #require(view.screenPoint(of: grabbed, in: viewport))
+            worst = max(worst, distance(now, end))
+        }
+    }
+    #expect(worst <= 0.5)
+}
+
 @Test func dragTurnsLessWhenZoomedIn() {
     var far = camera()
     var near = camera(zoom: 4)
