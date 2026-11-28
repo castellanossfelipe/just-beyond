@@ -215,6 +215,20 @@ func longitudeWrapsAtTheAntimeridian(startLon: Double, travel: Double, drags: In
     #expect(abs(remainder(view.centre.lonDeg - expected, 360)) < 0.01)
 }
 
+/// Starting at zoom 2, so that halving it is not stopped by the zoom limit.
+@Test(arguments: [0.0, 45, -45], [0.5, 1.5, 2])
+func zoomAboutPointKeepsThatPlaceStill(lat: Double, factor: Double) throws {
+    for offset in [0, -viewport.globeRadius / 2, viewport.globeRadius / 2] {
+        var view = camera(lat: lat, zoom: 2)
+        let point = ScreenPoint(x: middle.x + offset, y: middle.y)
+        let held = try #require(view.place(at: point, in: viewport))
+        view.zoom(by: factor, about: point, in: viewport)
+        #expect(view.zoom == 2 * factor)
+        let now = try #require(view.screenPoint(of: held, in: viewport))
+        #expect(distance(now, point) <= 0.5)
+    }
+}
+
 @Test func pinchScalesZoomByTheFingerSpread() {
     var view = camera(zoom: 2)
     view.pinch(by: 1.5)

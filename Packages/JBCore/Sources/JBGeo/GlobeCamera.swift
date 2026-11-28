@@ -115,6 +115,10 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
         return damping > 0
     }
 
+    /// Zooms by `factor`, keeping the place under `point` where it is.
+    public mutating func zoom(by factor: Double, about point: ScreenPoint, in viewport: GlobeViewport) {
+    }
+
     /// `factor` is how much the finger spread changed since the last call.
     public mutating func pinch(by factor: Double) {
         zoom = min(max(zoom * factor, Self.zoomRange.lowerBound), Self.zoomRange.upperBound)
