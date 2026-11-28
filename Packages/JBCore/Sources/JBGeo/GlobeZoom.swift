@@ -9,3 +9,12 @@ extension GlobeCamera {
         pow(2, points / slidePointsPerDoubling)
     }
 }
+
+/// The zoom after a double-tap or a two-finger tap (Systems Detail 16.1, item 6).
+public struct GlobeZoomAnimation: Codable, Equatable, Sendable {
+    public init(factor: Double, about point: ScreenPoint, from camera: GlobeCamera) {}
+
+    public var isFinished: Bool { false }
+
+    public mutating func advance(_ camera: inout GlobeCamera, by seconds: Double, in viewport: GlobeViewport) {}
+}
