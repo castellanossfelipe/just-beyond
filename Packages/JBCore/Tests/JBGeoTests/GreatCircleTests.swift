@@ -75,3 +75,10 @@ func arcOfAntipodesNeverReturnsNaN(start: LatLon, end: LatLon) {
     // Half way round, with no jumps.
     #expect(steps(arc).allSatisfy { $0 <= .pi / 180 + 1e-9 })
 }
+
+@Test func newYorkLondonArcBulgesNorthOfBothEnds() {
+    let arc = GreatCircle.arc(from: newYork, to: london)
+    let middle = LatLon(arc[arc.count / 2])
+    #expect(middle.latDeg > newYork.latDeg)
+    #expect(middle.latDeg > london.latDeg)
+}
