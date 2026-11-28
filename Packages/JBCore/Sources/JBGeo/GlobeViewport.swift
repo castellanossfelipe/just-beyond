@@ -29,6 +29,7 @@ extension GlobeCamera {
         let radius = viewport.globeRadius * zoom
         let x = (point.x - viewport.width / 2) / radius
         let y = (viewport.height / 2 - point.y) / radius
+        guard x * x + y * y <= 1 else { return nil }
         let depth = (1 - x * x - y * y).squareRoot()
         return LatLon(centre.eastVector * x + centre.northVector * y + centre.unitVector * depth)
     }
@@ -37,6 +38,7 @@ extension GlobeCamera {
     public func screenPoint(of place: LatLon, in viewport: GlobeViewport) -> ScreenPoint? {
         let radius = viewport.globeRadius * zoom
         let projected = OrthographicProjection(centre: centre).project(place)
+        guard projected.depth >= 0 else { return nil }
         return ScreenPoint(x: viewport.width / 2 + projected.x * radius,
                            y: viewport.height / 2 - projected.y * radius)
     }
