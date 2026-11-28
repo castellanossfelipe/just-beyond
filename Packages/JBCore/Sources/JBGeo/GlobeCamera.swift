@@ -9,5 +9,9 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
     }
 
     /// Finger travel in screen points, x right and y down. `globeRadius` is the radius at zoom 1.
-    public mutating func drag(dx: Double, dy: Double, globeRadius: Double) {}
+    public mutating func drag(dx: Double, dy: Double, globeRadius: Double) {
+        let degreesPerPoint = 180 / .pi / globeRadius
+        centre.lonDeg += dx * degreesPerPoint
+        centre.latDeg += dy * degreesPerPoint
+    }
 }
