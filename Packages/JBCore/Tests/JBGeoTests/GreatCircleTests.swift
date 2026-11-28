@@ -57,3 +57,7 @@ func arcStepsAreAtMostOneDegree(start: LatLon, end: LatLon) {
     #expect(abs(middle.latDeg) < 1e-9)
     #expect(abs(middle.lonDeg - 45) < 1e-9)
 }
+
+@Test func arcOfIdenticalPointsIsThatPoint() {
+    #expect(GreatCircle.arc(from: london, to: london) == [london.unitVector])
+}
