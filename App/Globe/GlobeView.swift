@@ -6,8 +6,8 @@ struct GlobeView: View {
     let scene: GlobeScene
     @State private var camera: GlobeCamera
     @State private var recorder = FrameRecorder()
-    // Gestures report totals since they began; the camera wants the change since last time.
-    @State private var lastDrag: (start: CGPoint, translation: CGSize)?
+    // Gestures report totals or the latest position; the camera wants the change since last time.
+    @State private var lastDrag: (start: CGPoint, location: CGPoint)?
     @State private var lastPinch: (start: CGPoint, magnification: CGFloat)?
     private let renderer = CanvasGlobeRenderer()
 
@@ -20,7 +20,7 @@ struct GlobeView: View {
         GeometryReader { geometry in
             renderer.view(of: scene, camera: camera, recorder: recorder)
                 .contentShape(.rect)
-                .gesture(drag(globeRadius: renderer.globeRadius(in: geometry.size))
+                .gesture(drag(in: viewport(of: geometry.size))
                     .simultaneously(with: pinch))
         }
         .background(.white)
@@ -32,16 +32,23 @@ struct GlobeView: View {
         }
     }
 
-    private func drag(globeRadius: Double) -> some Gesture {
+    private func viewport(of size: CGSize) -> GlobeViewport {
+        GlobeViewport(width: size.width, height: size.height, globeRadius: renderer.globeRadius(in: size))
+    }
+
+    private func drag(in viewport: GlobeViewport) -> some Gesture {
         DragGesture(minimumDistance: 1)
             .onChanged { value in
-                let before = lastDrag?.start == value.startLocation ? lastDrag?.translation ?? .zero : .zero
-                camera.drag(dx: value.translation.width - before.width,
-                            dy: value.translation.height - before.height,
-                            globeRadius: globeRadius)
-                lastDrag = (value.startLocation, value.translation)
+                let before = lastDrag?.start == value.startLocation ? lastDrag?.location : nil
+                camera.grab(from: screenPoint(before ?? value.startLocation),
+                            to: screenPoint(value.location), in: viewport)
+                lastDrag = (value.startLocation, value.location)
             }
             .onEnded { _ in lastDrag = nil }
+    }
+
+    private func screenPoint(_ point: CGPoint) -> ScreenPoint {
+        ScreenPoint(x: point.x, y: point.y)
     }
 
     private var pinch: some Gesture {
