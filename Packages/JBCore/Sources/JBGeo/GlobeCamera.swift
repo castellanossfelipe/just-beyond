@@ -34,15 +34,24 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
         guard let place = place(at: from, in: viewport) else { return }
         let radius = viewport.globeRadius * zoom
         // In unit-disc coordinates the screen's y points up.
-        step(place, by: (x: (to.x - from.x) / radius, y: (from.y - to.y) / radius))
+        let target = (x: (to.x - viewport.width / 2) / radius, y: (viewport.height / 2 - to.y) / radius)
+        // One solve is only linear, and the misses add up over a drag. Where it was undamped, a
+        // second solve toward the same point removes what is left.
+        if !step(place, toward: target) {
+            step(place, toward: target)
+        }
     }
 
-    /// One damped least-squares step that moves `place` by `fingerStep` across the unit disc.
-    private mutating func step(_ place: LatLon, by fingerStep: (x: Double, y: Double)) {
+    /// One damped least-squares step that moves `place` toward `target` on the unit disc. Returns
+    /// whether it had to be damped.
+    @discardableResult
+    private mutating func step(_ place: LatLon, toward target: (x: Double, y: Double)) -> Bool {
         let lat = place.latDeg * .pi / 180
         let centreLat = centre.latDeg * .pi / 180
         let lonOffset = (place.lonDeg - centre.lonDeg) * .pi / 180
-        let depth = OrthographicProjection(centre: centre).project(place).depth
+        let now = OrthographicProjection(centre: centre).project(place)
+        let depth = now.depth
+        let fingerStep = (x: target.x - now.x, y: target.y - now.y)
 
         // J = ∂(x, y)/∂(centre latitude, centre longitude) = [[0, b], [c, d]].
         let b = -cos(lat) * cos(lonOffset)
@@ -68,6 +77,7 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
         centre.latDeg = min(max(centre.latDeg + latStep * 180 / .pi, -90), 90)
         let lonDeg = centre.lonDeg + lonStep * 180 / .pi
         centre.lonDeg = lonDeg - 360 * ((lonDeg + 180) / 360).rounded(.down)
+        return damping > 0
     }
 
     /// `factor` is how much the finger spread changed since the last call.
