@@ -41,3 +41,14 @@ func ringIsClosed(centre: LatLon) {
     #expect(ring.count > 2)
     #expect(ring.first == ring.last)
 }
+
+@Test func ringOverTheNorthPoleStaysEquidistant() {
+    // 80°N is 1,112 km from the pole, so a 2,500 km ring goes well past it.
+    let centre = LatLon(latDeg: 80, lonDeg: 20)
+    let ring = RangeRing.points(around: centre, radiusKm: 2_500)
+    for point in ring {
+        #expect(abs(angle(centre.unitVector, point) - 2_500 / 6_371) < 1e-9)
+    }
+    // Due north from the centre carries on down the far side.
+    #expect(abs(LatLon(ring[0]).lonDeg - -160) < 1e-9)
+}
