@@ -36,6 +36,8 @@ final class GlobeMotion {
     // Bookkeeping that draws nothing.
     @ObservationIgnored private var landed: ScreenPoint?
     @ObservationIgnored private var hadTwoFingers = false
+    /// These touches have turned or pinched the globe, so they are no tap.
+    @ObservationIgnored private var movedGlobe = false
     @ObservationIgnored private var grabbed: (point: ScreenPoint, fingers: Int)?
     @ObservationIgnored private var samples: [CameraSample] = []
     @ObservationIgnored private var lastFrame = Date.distantPast
@@ -50,6 +52,7 @@ final class GlobeMotion {
         zooming = nil
         landed = point
         hadTwoFingers = false
+        movedGlobe = false
         grabbed = nil
         samples = []
     }
@@ -61,6 +64,8 @@ final class GlobeMotion {
     /// The drag is recognised, a little way from where the finger landed. `stillTime` is the last
     /// moment the finger was still there.
     func dragBegan(at point: ScreenPoint, fingers: Int, stillTime: Double, time: Double, in viewport: GlobeViewport) {
+        // A drag is only recognised once the fingers have gone further than a tap's do.
+        movedGlobe = true
         samples = [CameraSample(timeSeconds: stillTime, centre: camera.centre)]
         // One finger takes hold of what it landed on. Two take hold where they are now.
         if fingers == 1, !hadTwoFingers, let landed {
@@ -92,6 +97,7 @@ final class GlobeMotion {
     /// `midpoint` is between the fingers now; `factor` is the change of their spread.
     func pinched(by factor: Double, about midpoint: ScreenPoint, isNew: Bool, in viewport: GlobeViewport) {
         hadTwoFingers = true
+        movedGlobe = true
         if !isNew, lastZoom?.source == .pinch {
             lastZoom?.factor *= factor
         } else {
@@ -107,6 +113,8 @@ final class GlobeMotion {
     }
 
     func twoFingerTapped(at midpoint: ScreenPoint, reduceMotion: Bool, in viewport: GlobeViewport) {
+        // A short pinch or drag can pass for a tap too.
+        guard !movedGlobe else { return }
         tag(.twoFingerTap, factor: 0.5)
         zoom(by: 0.5, about: midpoint, reduceMotion: reduceMotion, in: viewport)
     }

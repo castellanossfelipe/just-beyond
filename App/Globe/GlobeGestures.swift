@@ -69,6 +69,38 @@ final class TimedPanRecognizer: UIPanGestureRecognizer {
     }
 }
 
+/// A pinch that notices a finger landing or lifting while it is under way. The spread jumps then,
+/// and the jump is not a pinch.
+final class RebasingPinchRecognizer: UIPinchGestureRecognizer {
+    /// Set until the owner has started `scale` again from the new spread.
+    var fingersChanged = false
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        noteFingerChange()
+        super.touchesBegan(touches, with: event)
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+        noteFingerChange()
+        super.touchesEnded(touches, with: event)
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+        noteFingerChange()
+        super.touchesCancelled(touches, with: event)
+    }
+
+    override func reset() {
+        super.reset()
+        fingersChanged = false
+    }
+
+    /// The fingers that start a pinch are no change to it.
+    private func noteFingerChange() {
+        if state == .began || state == .changed { fingersChanged = true }
+    }
+}
+
 /// Lets the recognizers run together.
 final class SimultaneousGestures: NSObject, UIGestureRecognizerDelegate {
     func gestureRecognizer(_ recognizer: UIGestureRecognizer,
@@ -141,15 +173,21 @@ struct GlobePinch: UIGestureRecognizerRepresentable {
         SimultaneousGestures()
     }
 
-    func makeUIGestureRecognizer(context: Context) -> UIPinchGestureRecognizer {
-        let recognizer = UIPinchGestureRecognizer()
+    func makeUIGestureRecognizer(context: Context) -> RebasingPinchRecognizer {
+        let recognizer = RebasingPinchRecognizer()
         recognizer.delegate = context.coordinator
         return recognizer
     }
 
-    func handleUIGestureRecognizerAction(_ recognizer: UIPinchGestureRecognizer, context: Context) {
+    func handleUIGestureRecognizerAction(_ recognizer: RebasingPinchRecognizer, context: Context) {
         // With a finger lifted the midpoint jumps to the one left; there is nothing to zoom.
         guard recognizer.state == .began || recognizer.state == .changed, recognizer.numberOfTouches > 1 else { return }
+        // The first report after a change of fingers only sets where to count from.
+        if recognizer.fingersChanged {
+            recognizer.fingersChanged = false
+            recognizer.scale = 1
+            return
+        }
         motion.pinched(by: recognizer.scale, about: screenPoint(context.converter.localLocation),
                        isNew: recognizer.state == .began, in: viewport)
         // `scale` is a total; the camera wants the change since last time.
