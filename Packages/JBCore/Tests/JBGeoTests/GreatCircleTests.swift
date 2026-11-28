@@ -61,3 +61,17 @@ func arcStepsAreAtMostOneDegree(start: LatLon, end: LatLon) {
 @Test func arcOfIdenticalPointsIsThatPoint() {
     #expect(GreatCircle.arc(from: london, to: london) == [london.unitVector])
 }
+
+@Test(arguments: [
+    (LatLon(latDeg: 0, lonDeg: 0), LatLon(latDeg: 0, lonDeg: 180)),
+    (LatLon(latDeg: 90, lonDeg: 0), LatLon(latDeg: -90, lonDeg: 0)),
+    (newYork, LatLon(latDeg: -40.71, lonDeg: 105.99)),
+])
+func arcOfAntipodesNeverReturnsNaN(start: LatLon, end: LatLon) {
+    let arc = GreatCircle.arc(from: start, to: end)
+    #expect(arc.first == start.unitVector)
+    #expect(arc.last == end.unitVector)
+    #expect(arc.allSatisfy { abs(length($0) - 1) < 1e-9 })
+    // Half way round, with no jumps.
+    #expect(steps(arc).allSatisfy { $0 <= .pi / 180 + 1e-9 })
+}
