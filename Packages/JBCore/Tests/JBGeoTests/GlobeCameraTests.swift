@@ -34,3 +34,12 @@ private let oneRadianDeg = 180 / Double.pi
     #expect(view.centre.latDeg > 30)
     #expect(view.centre.lonDeg == -40)
 }
+
+@Test func dragTurnsLessWhenZoomedIn() {
+    var far = camera()
+    var near = camera(zoom: 4)
+    far.drag(dx: 40, dy: 40, globeRadius: radius)
+    near.drag(dx: 40, dy: 40, globeRadius: radius)
+    #expect(abs(near.centre.lonDeg - far.centre.lonDeg / 4) < 1e-9)
+    #expect(abs(near.centre.latDeg - far.centre.latDeg / 4) < 1e-9)
+}
