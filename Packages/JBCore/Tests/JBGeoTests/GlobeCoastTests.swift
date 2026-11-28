@@ -46,9 +46,9 @@ private func degPerSecond(pointsPerSecond speed: Double, lat: Double = 0, zoom: 
     coast.advance(&view, by: 0.1)
     #expect(abs(coast.lonDegPerSecond - rate * pow(0.998, 100)) < 1e-9)
 
-    // Long enough to be over. It stops at 10 of its 1,000 pt/s, so that share of the turn is not made.
+    // Long enough to be over. It stops at 20 of its 1,000 pt/s, so that share of the turn is not made.
     coast.advance(&view, by: 10)
-    let total = rate * 0.4995 * (1 - 10.0 / 1_000)
+    let total = rate * 0.4995 * (1 - 20.0 / 1_000)
     #expect(abs(view.centre.lonDeg - total) < total * 0.001)
     #expect(view.centre.latDeg == 0)
 }
@@ -94,8 +94,8 @@ func slowReleaseDoesNotCoast(lat: Double, zoom: Double) {
     var view = GlobeCamera(centre: LatLon(latDeg: 0, lonDeg: 0))
     var coast = try #require(GlobeCoast(samples: samples(lonDegPerSecond: degPerSecond(pointsPerSecond: 1_000)),
                                         zoom: 1, viewport: viewport))
-    // From 1,000 pt/s, 0.998 a millisecond reaches 10 pt/s after 2.300 s.
-    coast.advance(&view, by: 2.29)
+    // From 1,000 pt/s, 0.998 a millisecond reaches 20 pt/s after 1.954 s.
+    coast.advance(&view, by: 1.94)
     #expect(!coast.isFinished)
     coast.advance(&view, by: 0.02)
     #expect(coast.isFinished)
@@ -135,7 +135,7 @@ func coastStopsTiltingAtThePole(pole: Double) throws {
 
     #expect(view.centre.latDeg == 90 * pole)
     // The longitude part carries on to the coast's own end.
-    let total = 200 * 0.4995 * (1 - 10 / speed)
+    let total = 200 * 0.4995 * (1 - 20 / speed)
     #expect(abs(view.centre.lonDeg - total) < total * 0.001)
 }
 
