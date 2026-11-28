@@ -168,11 +168,14 @@ func dragAtHighLatitudeStillFollowsTheFinger(lat: Double, widthOfParallel: Doubl
     #expect(abs(view.centre.lonDeg - -(0.1 * oneRadianDeg / widthOfParallel)) < 1e-9)
 }
 
-@Test(arguments: [(1.0, 90.0), (-1, -90)])
-func latitudeStopsAtThePoles(direction: Double, pole: Double) {
+/// A finger dragged from the middle, toward the near pole's far side and a little sideways.
+@Test(arguments: [(1.0, 0.0), (-1, 0), (1, 30), (-1, -30)])
+func dragPastThePoleStopsAtThePole(direction: Double, sideways: Double) {
     var view = camera(lat: 80 * direction)
-    view.drag(dx: 0, dy: 1_000 * direction, globeRadius: radius)
-    #expect(view.centre.latDeg == pole)
+    drag(&view, from: middle, to: ScreenPoint(x: middle.x + sideways, y: middle.y + 150 * direction))
+    #expect(view.centre.latDeg * direction <= 90)
+    #expect(view.centre.latDeg * direction > 89)
+    #expect(view.centre.lonDeg >= -180 && view.centre.lonDeg < 180)
 }
 
 /// Start longitude and finger travel: across the antimeridian each way, and many times round.
