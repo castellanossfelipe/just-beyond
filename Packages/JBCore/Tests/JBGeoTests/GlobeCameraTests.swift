@@ -151,6 +151,38 @@ func correctedDragNeverJumps(step: (Double, Double, Double, Double), zoom: Doubl
     #expect(abs(view.centre.lonDeg) <= limit)
 }
 
+/// The nearest point of the rim, at 0.999 of the radius, for a point beyond it.
+private func rim(_ point: ScreenPoint) -> ScreenPoint {
+    let dx = point.x - middle.x
+    let dy = point.y - middle.y
+    let r = hypot(dx, dy) / viewport.globeRadius
+    guard r > 0.999 else { return point }
+    return ScreenPoint(x: middle.x + dx * 0.999 / r, y: middle.y + dy * 0.999 / r)
+}
+
+/// Where the finger starts, as an offset from the screen middle in points, and its travel: off to
+/// one side, out in a corner, and from on the globe to off it.
+private let outsideDrags: [(Double, Double, Double, Double)] = [
+    (192, 0, 0, 40), (-180, -380, 60, 0), (170, 0, 40, -30),
+]
+
+@Test(arguments: outsideDrags)
+func dragFromOutsideTheGlobeGrabsTheRim(x: Double, y: Double, dx: Double, dy: Double) {
+    var outside = camera(lat: 20)
+    var onRim = camera(lat: 20)
+    var previous = ScreenPoint(x: middle.x + x, y: middle.y + y)
+    for step in 1...40 {
+        let t = Double(step) / 40
+        let next = ScreenPoint(x: middle.x + x + dx * t, y: middle.y + y + dy * t)
+        outside.grab(from: previous, to: next, in: viewport)
+        onRim.grab(from: rim(previous), to: rim(next), in: viewport)
+        previous = next
+    }
+    #expect(onRim != camera(lat: 20))
+    #expect(abs(outside.centre.latDeg - onRim.centre.latDeg) < 1e-9)
+    #expect(abs(outside.centre.lonDeg - onRim.centre.lonDeg) < 1e-9)
+}
+
 @Test func zoomedInDragTurnsLess() {
     let end = ScreenPoint(x: middle.x + 40, y: middle.y)
     var far = camera()
