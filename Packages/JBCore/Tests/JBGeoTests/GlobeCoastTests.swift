@@ -121,3 +121,20 @@ func slowReleaseDoesNotCoast(lat: Double, zoom: Double) {
     #expect(abs(fast.turned - cap.turned) < 1e-9)
     #expect(abs(cap.start - degPerSecond(pointsPerSecond: 4_000, zoom: 4)) < 1e-9)
 }
+
+/// North and south.
+@Test(arguments: [1.0, -1])
+func coastStopsTiltingAtThePole(pole: Double) throws {
+    var view = GlobeCamera(centre: LatLon(latDeg: 85 * pole, lonDeg: 0))
+    var coast = try #require(GlobeCoast(
+        samples: samples(endingAt: view.centre, latDegPerSecond: 60 * pole, lonDegPerSecond: 200),
+        zoom: 1, viewport: viewport))
+    let speed = viewport.globeRadius * hypot(60, 200 * cos(85 * .pi / 180)) * .pi / 180
+
+    coast.advance(&view, by: 10)
+
+    #expect(view.centre.latDeg == 90 * pole)
+    // The longitude part carries on to the coast's own end.
+    let total = 200 * 0.4995 * (1 - 10 / speed)
+    #expect(abs(view.centre.lonDeg - total) < total * 0.001)
+}
