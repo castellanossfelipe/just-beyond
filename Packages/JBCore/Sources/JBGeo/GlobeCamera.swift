@@ -117,6 +117,12 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
 
     /// Zooms by `factor`, keeping the place under `point` where it is.
     public mutating func zoom(by factor: Double, about point: ScreenPoint, in viewport: GlobeViewport) {
+        let held = place(at: viewport.clampedToRim(point, radius: viewport.globeRadius * zoom), in: viewport)
+        pinch(by: factor)
+        // Zooming slid the place along its line from the middle; grab it and bring it back.
+        if let held, let now = screenPoint(of: held, in: viewport) {
+            grab(from: now, to: point, in: viewport)
+        }
     }
 
     /// `factor` is how much the finger spread changed since the last call.
