@@ -1,7 +1,7 @@
 import JBGeo
 import SwiftUI
 
-/// The turning globe: the place under your finger stays under it, and it coasts when you let go.
+/// The turning globe: the place under your finger stays under it, it coasts when you let go, and taps zoom.
 struct GlobeView: View {
     let scene: GlobeScene
     @State private var motion: GlobeMotion
@@ -17,15 +17,18 @@ struct GlobeView: View {
     var body: some View {
         GeometryReader { geometry in
             let viewport = viewport(of: geometry.size)
-            // Frames run only while the globe is coasting.
-            TimelineView(.animation(paused: motion.coast == nil)) { timeline in
+            // Frames run only while the globe moves by itself.
+            TimelineView(.animation(paused: !motion.isMoving)) { timeline in
                 renderer.view(of: scene, camera: motion.camera, recorder: recorder)
-                    .onChange(of: timeline.date) { _, date in motion.frame(at: date) }
+                    .onChange(of: timeline.date) { _, date in motion.frame(at: date, in: viewport) }
             }
             .contentShape(.rect)
             .gesture(GlobeTouchDown(motion: motion))
             .gesture(GlobeDrag(motion: motion, viewport: viewport, reduceMotion: reduceMotion))
             .gesture(GlobePinch(motion: motion, viewport: viewport))
+            .gesture(GlobeSlideZoom(motion: motion, viewport: viewport))
+            .gesture(GlobeDoubleTap(motion: motion, viewport: viewport, reduceMotion: reduceMotion))
+            .gesture(GlobeTwoFingerTap(motion: motion, viewport: viewport, reduceMotion: reduceMotion))
         }
         .background(.white)
         .ignoresSafeArea()

@@ -69,7 +69,7 @@ final class TimedPanRecognizer: UIPanGestureRecognizer {
     }
 }
 
-/// Lets the drag and the pinch run together.
+/// Lets the recognizers run together.
 final class SimultaneousGestures: NSObject, UIGestureRecognizerDelegate {
     func gestureRecognizer(_ recognizer: UIGestureRecognizer,
                            shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
@@ -153,5 +153,79 @@ struct GlobePinch: UIGestureRecognizerRepresentable {
         motion.pinched(by: recognizer.scale, about: screenPoint(context.converter.localLocation), in: viewport)
         // `scale` is a total; the camera wants the change since last time.
         recognizer.scale = 1
+    }
+}
+
+/// Double-tap, hold and slide: a long press with one tap first and no delay.
+struct GlobeSlideZoom: UIGestureRecognizerRepresentable {
+    let motion: GlobeMotion
+    let viewport: GlobeViewport
+
+    func makeCoordinator(converter: CoordinateSpaceConverter) -> SimultaneousGestures {
+        SimultaneousGestures()
+    }
+
+    func makeUIGestureRecognizer(context: Context) -> UILongPressGestureRecognizer {
+        let recognizer = UILongPressGestureRecognizer()
+        recognizer.numberOfTapsRequired = 1
+        recognizer.minimumPressDuration = 0
+        recognizer.delegate = context.coordinator
+        return recognizer
+    }
+
+    func handleUIGestureRecognizerAction(_ recognizer: UILongPressGestureRecognizer, context: Context) {
+        let point = screenPoint(context.converter.localLocation)
+        switch recognizer.state {
+        case .began:
+            motion.slideBegan(at: point)
+        case .changed:
+            motion.slideMoved(to: point, in: viewport)
+        default:
+            break
+        }
+    }
+}
+
+struct GlobeDoubleTap: UIGestureRecognizerRepresentable {
+    let motion: GlobeMotion
+    let viewport: GlobeViewport
+    let reduceMotion: Bool
+
+    func makeCoordinator(converter: CoordinateSpaceConverter) -> SimultaneousGestures {
+        SimultaneousGestures()
+    }
+
+    func makeUIGestureRecognizer(context: Context) -> UITapGestureRecognizer {
+        let recognizer = UITapGestureRecognizer()
+        recognizer.numberOfTapsRequired = 2
+        recognizer.delegate = context.coordinator
+        return recognizer
+    }
+
+    func handleUIGestureRecognizerAction(_ recognizer: UITapGestureRecognizer, context: Context) {
+        motion.doubleTapped(at: screenPoint(context.converter.localLocation),
+                            reduceMotion: reduceMotion, in: viewport)
+    }
+}
+
+struct GlobeTwoFingerTap: UIGestureRecognizerRepresentable {
+    let motion: GlobeMotion
+    let viewport: GlobeViewport
+    let reduceMotion: Bool
+
+    func makeCoordinator(converter: CoordinateSpaceConverter) -> SimultaneousGestures {
+        SimultaneousGestures()
+    }
+
+    func makeUIGestureRecognizer(context: Context) -> UITapGestureRecognizer {
+        let recognizer = UITapGestureRecognizer()
+        recognizer.numberOfTouchesRequired = 2
+        recognizer.delegate = context.coordinator
+        return recognizer
+    }
+
+    func handleUIGestureRecognizerAction(_ recognizer: UITapGestureRecognizer, context: Context) {
+        motion.twoFingerTapped(at: screenPoint(context.converter.localLocation),
+                               reduceMotion: reduceMotion, in: viewport)
     }
 }
