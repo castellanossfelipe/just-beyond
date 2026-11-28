@@ -39,9 +39,9 @@ public struct GlobeCoast: Codable, Equatable, Sendable {
 
     /// `samples` are in time order; the last one is the lift. Nil if the globe does not coast.
     public init?(samples: [CameraSample], zoom: Double, viewport: GlobeViewport) {
-        guard let lift = samples.last,
-              let from = samples.lastIndex(where: { $0.timeSeconds <= lift.timeSeconds - Self.windowSeconds })
-        else { return nil }
+        guard let lift = samples.last else { return nil }
+        // A gesture shorter than the window is measured whole.
+        let from = samples.lastIndex { $0.timeSeconds <= lift.timeSeconds - Self.windowSeconds } ?? 0
         let window = samples[from...]
         let reference = samples[from]
         // Added up update by update, each the short way, so the antimeridian is no jump and a
@@ -50,6 +50,7 @@ public struct GlobeCoast: Codable, Equatable, Sendable {
             $0 + remainder($1.1.centre.lonDeg - $1.0.centre.lonDeg, 360)
         }
         let seconds = lift.timeSeconds - reference.timeSeconds
+        guard seconds > 0 else { return nil }
         let latRate = (lift.centre.latDeg - reference.centre.latDeg) / seconds
         let lonRate = lonTurn / seconds
 
