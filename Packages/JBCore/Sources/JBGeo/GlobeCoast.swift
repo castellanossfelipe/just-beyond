@@ -1,3 +1,5 @@
+import Foundation
+
 /// Where the camera was at one touch update, at the touch's own time.
 public struct CameraSample: Codable, Equatable, Sendable {
     public var timeSeconds: Double
@@ -11,12 +13,23 @@ public struct CameraSample: Codable, Equatable, Sendable {
 
 /// The globe turning on after the finger lifts (Systems Detail 16.1, item 5).
 public struct GlobeCoast: Codable, Equatable, Sendable {
-    /// How fast the camera centre is turning.
-    public private(set) var latDegPerSecond: Double
-    public private(set) var lonDegPerSecond: Double
-
     /// How far back from the lift the turning is measured. [tune]
     static let windowSeconds = 0.08
+
+    /// The share of its speed the coast keeps each millisecond, as an iOS scroll view does.
+    static let keptPerMillisecond = 0.998
+
+    /// The coast ends when the screen middle moves slower than this, in points a second. [tune]
+    static let slowestSpeed = 10.0
+
+    /// How fast the speed falls: speed = start × e^(−decay × seconds).
+    private static var decayPerSecond: Double { -1000 * log(keptPerMillisecond) }
+
+    private let startLatDegPerSecond: Double
+    private let startLonDegPerSecond: Double
+    /// Fixed at the lift, so frames of any length end the coast at the same place.
+    private let endSeconds: Double
+    private var elapsedSeconds = 0.0
 
     /// `samples` are in time order; the last one is the lift. Nil if the globe does not coast.
     public init?(samples: [CameraSample], zoom: Double, viewport: GlobeViewport) {
@@ -24,10 +37,27 @@ public struct GlobeCoast: Codable, Equatable, Sendable {
               let reference = samples.last(where: { $0.timeSeconds <= lift.timeSeconds - Self.windowSeconds })
         else { return nil }
         let seconds = lift.timeSeconds - reference.timeSeconds
-        latDegPerSecond = (lift.centre.latDeg - reference.centre.latDeg) / seconds
-        lonDegPerSecond = (lift.centre.lonDeg - reference.centre.lonDeg) / seconds
+        startLatDegPerSecond = (lift.centre.latDeg - reference.centre.latDeg) / seconds
+        startLonDegPerSecond = (lift.centre.lonDeg - reference.centre.lonDeg) / seconds
+
+        // How fast the screen middle moves, in points a second.
+        let alongParallel = cos(lift.centre.latDeg * .pi / 180) * startLonDegPerSecond
+        let speed = viewport.globeRadius * zoom * hypot(startLatDegPerSecond, alongParallel) * .pi / 180
+        endSeconds = log(speed / Self.slowestSpeed) / Self.decayPerSecond
     }
 
+    /// How fast the camera centre is turning now.
+    public var latDegPerSecond: Double { startLatDegPerSecond * speedLeft }
+    public var lonDegPerSecond: Double { startLonDegPerSecond * speedLeft }
+
+    private var speedLeft: Double { exp(-Self.decayPerSecond * elapsedSeconds) }
+
     /// Turns the camera on by the next `seconds` of the coast.
-    public mutating func advance(_ camera: inout GlobeCamera, by seconds: Double) {}
+    public mutating func advance(_ camera: inout GlobeCamera, by seconds: Double) {
+        let before = speedLeft
+        elapsedSeconds = min(elapsedSeconds + seconds, endSeconds)
+        // The turn made is the speed lost over the rate of losing it, so one long step equals many.
+        let turned = (before - speedLeft) / Self.decayPerSecond
+        camera.move(latDeg: startLatDegPerSecond * turned, lonDeg: startLonDegPerSecond * turned)
+    }
 }

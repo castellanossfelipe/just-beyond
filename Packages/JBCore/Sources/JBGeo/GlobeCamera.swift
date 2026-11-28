@@ -61,7 +61,7 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
     }
 
     /// Latitude stops at the poles; longitude wraps.
-    private mutating func move(latDeg: Double, lonDeg: Double) {
+    mutating func move(latDeg: Double, lonDeg: Double) {
         centre.latDeg = min(max(centre.latDeg + latDeg, -90), 90)
         let lon = centre.lonDeg + lonDeg
         centre.lonDeg = lon - 360 * ((lon + 180) / 360).rounded(.down)
