@@ -93,6 +93,64 @@ func longTouchStepIsSplit(lat: Double, start: ScreenPoint) throws {
     #expect(distance(oncePoint, oftenPoint) <= 0.5)
 }
 
+/// Camera latitude, and where the finger lands as an offset from the screen middle in globe
+/// radii: near both poles, across them, and out at the rim.
+private let jumpyDrags: [(Double, Double, Double)] = [
+    (85, 0, 0), (-85, 0, 0), (89.9, 0.1, 0.1), (-89.9, -0.1, -0.1), (90, 0, 0.3), (-90, 0.3, 0),
+    (50, 0, 0.5), (-50, 0, -0.5),
+    (0, 0.99, 0), (0, 0, -0.99), (45, -0.7, 0.7), (-45, 0.7, -0.7),
+]
+
+@Test(arguments: jumpyDrags, [1.0, 8])
+func dragNeverJumps(drag: (Double, Double, Double), zoom: Double) {
+    let (lat, right, up) = drag
+    let radius = viewport.globeRadius * zoom
+    let start = ScreenPoint(x: middle.x + right * radius, y: middle.y - up * radius)
+    // No step may turn further than its own length in globe radii over σc = 0.25, in radians.
+    let limit = 2 / radius / 0.25 * 180 / .pi * (1 + 1e-9)
+    var worst = 0.0
+    for eighth in 0..<8 {
+        var view = camera(lat: lat, zoom: zoom)
+        let angle = Double(eighth) * .pi / 4
+        var previous = start
+        for step in 1...100 {
+            let travel = 2 * Double(step)
+            let next = ScreenPoint(x: start.x + travel * cos(angle), y: start.y + travel * sin(angle))
+            let before = view.centre
+            view.grab(from: previous, to: next, in: viewport)
+            #expect(view.centre.latDeg.isFinite && view.centre.lonDeg.isFinite)
+            worst = max(worst, abs(view.centre.latDeg - before.latDeg),
+                        abs(remainder(view.centre.lonDeg - before.lonDeg, 360)))
+            previous = next
+        }
+    }
+    #expect(worst <= limit)
+}
+
+/// Single steps just inside where the damping starts (0.968 of the radius), found by a sweep:
+/// camera latitude, grab radius, which way out the grab is and which way the finger goes, in
+/// degrees anticlockwise from screen right. The first solve there uses almost the whole limit,
+/// so the corrector must not add past it.
+private let edgeSteps: [(Double, Double, Double, Double)] = [
+    (0, 0.968, 0, 0),
+    (45, 0.9665325, 255, 260),
+]
+
+@Test(arguments: edgeSteps, [1.0, 4, 8])
+func correctedDragNeverJumps(step: (Double, Double, Double, Double), zoom: Double) {
+    let (lat, r, spoke, heading) = step
+    let radius = viewport.globeRadius * zoom
+    let out = spoke * .pi / 180
+    let along = heading * .pi / 180
+    let from = ScreenPoint(x: middle.x + r * cos(out) * radius, y: middle.y - r * sin(out) * radius)
+    let to = ScreenPoint(x: from.x + 2 * cos(along), y: from.y - 2 * sin(along))
+    var view = camera(lat: lat, zoom: zoom)
+    view.grab(from: from, to: to, in: viewport)
+    let limit = 2 / radius / 0.25 * 180 / .pi * (1 + 1e-9)
+    #expect(abs(view.centre.latDeg - lat) <= limit)
+    #expect(abs(view.centre.lonDeg) <= limit)
+}
+
 @Test func zoomedInDragTurnsLess() {
     let end = ScreenPoint(x: middle.x + 40, y: middle.y)
     var far = camera()
