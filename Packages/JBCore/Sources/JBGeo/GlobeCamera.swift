@@ -25,8 +25,49 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
         centre.latDeg = min(max(centre.latDeg + dy * degreesPerPoint, -90), 90)
     }
 
-    /// Turns the globe so the place under `from` goes to `to`.
+    /// The camera turns no faster than one over this, in radians per globe radius of finger travel.
+    /// σc in Systems Detail 16.1. [tune]
+    static let dampingFloor = 0.25
+
+    /// Turns the globe so the place under `from` goes to `to` (Systems Detail 16.1, item 1).
     public mutating func grab(from: ScreenPoint, to: ScreenPoint, in viewport: GlobeViewport) {
+        guard let place = place(at: from, in: viewport) else { return }
+        let radius = viewport.globeRadius * zoom
+        // In unit-disc coordinates the screen's y points up.
+        step(place, by: (x: (to.x - from.x) / radius, y: (from.y - to.y) / radius))
+    }
+
+    /// One damped least-squares step that moves `place` by `fingerStep` across the unit disc.
+    private mutating func step(_ place: LatLon, by fingerStep: (x: Double, y: Double)) {
+        let lat = place.latDeg * .pi / 180
+        let centreLat = centre.latDeg * .pi / 180
+        let lonOffset = (place.lonDeg - centre.lonDeg) * .pi / 180
+        let depth = OrthographicProjection(centre: centre).project(place).depth
+
+        // J = ∂(x, y)/∂(centre latitude, centre longitude) = [[0, b], [c, d]].
+        let b = -cos(lat) * cos(lonOffset)
+        let c = -depth
+        let d = -cos(lat) * sin(centreLat) * sin(lonOffset)
+
+        // JᵀJ = [[m11, m12], [m12, m22]], damped only where its smallest eigenvalue is below σc².
+        var m11 = c * c
+        let m12 = c * d
+        var m22 = b * b + d * d
+        let smallest = (m11 + m22) / 2 - hypot((m11 - m22) / 2, m12)
+        let damping = max(0, Self.dampingFloor * Self.dampingFloor - smallest)
+        m11 += damping
+        m22 += damping
+
+        // (JᵀJ + μ²I)⁻¹ Jᵀ fingerStep
+        let g1 = c * fingerStep.y
+        let g2 = b * fingerStep.x + d * fingerStep.y
+        let determinant = m11 * m22 - m12 * m12
+        let latStep = (m22 * g1 - m12 * g2) / determinant
+        let lonStep = (m11 * g2 - m12 * g1) / determinant
+
+        centre.latDeg = min(max(centre.latDeg + latStep * 180 / .pi, -90), 90)
+        let lonDeg = centre.lonDeg + lonStep * 180 / .pi
+        centre.lonDeg = lonDeg - 360 * ((lonDeg + 180) / 360).rounded(.down)
     }
 
     /// `factor` is how much the finger spread changed since the last call.
