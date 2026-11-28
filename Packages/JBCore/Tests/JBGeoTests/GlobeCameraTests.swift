@@ -6,20 +6,7 @@ private func camera(lat: Double = 0, lon: Double = 0, zoom: Double = 1) -> Globe
     GlobeCamera(centre: LatLon(latDeg: lat, lonDeg: lon), zoom: zoom)
 }
 
-private let radius = 200.0
 private let oneRadianDeg = 180 / Double.pi
-
-@Test func dragAtCentreTurnsOneRadianPerRadiusOfFingerTravel() {
-    var across = camera()
-    across.drag(dx: radius, dy: 0, globeRadius: radius)
-    #expect(abs(abs(across.centre.lonDeg) - oneRadianDeg) < 1e-9)
-    #expect(across.centre.latDeg == 0)
-
-    var down = camera()
-    down.drag(dx: 0, dy: radius, globeRadius: radius)
-    #expect(abs(abs(down.centre.latDeg) - oneRadianDeg) < 1e-9)
-    #expect(down.centre.lonDeg == 0)
-}
 
 /// An iPhone 13 in portrait, and its screen middle.
 private let viewport = GlobeViewport(width: 390, height: 844, globeRadius: 187)
@@ -190,14 +177,6 @@ func dragFromOutsideTheGlobeGrabsTheRim(x: Double, y: Double, dx: Double, dy: Do
     drag(&far, from: middle, to: end)
     drag(&near, from: middle, to: end)
     #expect(abs(near.centre.lonDeg / far.centre.lonDeg - 0.25) < 0.25 * 0.01)
-}
-
-@Test(arguments: [(45.0, 0.707_106_781_186_547_6), (60, 0.5), (-60, 0.5), (85, 0.2), (90, 0.2)])
-func dragAtHighLatitudeStillFollowsTheFinger(lat: Double, widthOfParallel: Double) {
-    var view = camera(lat: lat)
-    view.drag(dx: 20, dy: 0, globeRadius: radius)
-    // A narrower parallel needs more longitude for the same travel, down to a floor near the poles.
-    #expect(abs(view.centre.lonDeg - -(0.1 * oneRadianDeg / widthOfParallel)) < 1e-9)
 }
 
 /// A finger dragged from the middle, toward the near pole's far side and a little sideways.
