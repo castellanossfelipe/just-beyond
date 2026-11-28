@@ -155,3 +155,12 @@ func coastTakesTheShortWayAcrossTheAntimeridian(lat: Double, zoom: Double, lons:
     let coast = try #require(GlobeCoast(samples: turning, zoom: zoom, viewport: viewport))
     #expect(abs(coast.lonDegPerSecond - degPerSecond) < 1e-6)
 }
+
+@Test func shortFlickCoastsFromItsWholeLength() throws {
+    // Three updates: 50 ms from touch to lift.
+    let flick = samples(lonDegPerSecond: 100, updates: 3)
+    let coast = try #require(GlobeCoast(samples: flick, zoom: 1, viewport: viewport))
+    #expect(abs(coast.lonDegPerSecond - 100) < 1e-9)
+    // One sample shows no turning.
+    #expect(GlobeCoast(samples: [flick[0]], zoom: 1, viewport: viewport) == nil)
+}
