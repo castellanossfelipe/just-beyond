@@ -178,6 +178,16 @@ func dragPastThePoleStopsAtThePole(direction: Double, sideways: Double) {
     #expect(view.centre.lonDeg >= -180 && view.centre.lonDeg < 180)
 }
 
+/// Camera at 50° N, grabbing the place at 80° N on the middle meridian: its parallel is too narrow
+/// on screen to follow the finger, which has to slip while the globe keeps turning.
+@Test(arguments: [150.0, -150])
+func sidewaysDragNearPoleDoesNotFreeze(travel: Double) throws {
+    var view = camera(lat: 50)
+    let start = try #require(view.screenPoint(of: LatLon(latDeg: 80, lonDeg: 0), in: viewport))
+    drag(&view, from: start, to: ScreenPoint(x: start.x + travel, y: start.y))
+    #expect(abs(view.centre.lonDeg) >= 20)
+}
+
 /// Start longitude and finger travel: across the antimeridian each way, and many times round.
 private let longDrags: [(Double, Double)] = [(179, -10), (-179, 10), (0, 20 * 2 * Double.pi * radius + 1)]
 
