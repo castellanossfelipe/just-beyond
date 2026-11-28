@@ -1,1 +1,1 @@
-S0.5 task 2: checkpoint D built on local branch s0.5-coast (nothing pushed), waiting for the phone test (taps, slide zoom, off-globe zoom, Reduce Motion); next is the merge, then task 3, on-phone tuning of the [tune] numbers.
+S0.5 task 2: slide zoom cut and zooms tagged on the HUD (local branch s0.5-coast, nothing pushed); waiting for the retest of "the globe zooms out on its own", candidate fix not yet approved.
