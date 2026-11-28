@@ -1,1 +1,1 @@
-S0.5 task 1 merged (PR #12), all green; next is task 2, starting with the failing test coastStartsFromHowTheGlobeWasMoving; checkpoints and open questions are in the comment on issue #11.
+S0.5 task 2: coast math (checkpoints A, B) done on local branch s0.5-coast; next is C, UIKit touches and the coast on screen (no test), decisions in issue #11 plus: no coast after two fingers, then stop for the phone test.
