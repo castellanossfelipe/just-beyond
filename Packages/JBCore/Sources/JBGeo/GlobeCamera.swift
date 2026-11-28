@@ -23,5 +23,7 @@ public struct GlobeCamera: Codable, Equatable, Sendable {
     }
 
     /// `factor` is how much the finger spread changed since the last call.
-    public mutating func pinch(by factor: Double) {}
+    public mutating func pinch(by factor: Double) {
+        zoom *= factor
+    }
 }
