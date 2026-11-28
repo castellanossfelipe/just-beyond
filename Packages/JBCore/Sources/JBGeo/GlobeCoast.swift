@@ -22,6 +22,9 @@ public struct GlobeCoast: Codable, Equatable, Sendable {
     /// The coast ends when the screen middle moves slower than this, in points a second. [tune]
     static let slowestSpeed = 10.0
 
+    /// No coast from a release slower than this, in points a second. [tune]
+    static let slowestRelease = 100.0
+
     /// How fast the speed falls: speed = start × e^(−decay × seconds).
     private static var decayPerSecond: Double { -1000 * log(keptPerMillisecond) }
 
@@ -43,6 +46,7 @@ public struct GlobeCoast: Codable, Equatable, Sendable {
         // How fast the screen middle moves, in points a second.
         let alongParallel = cos(lift.centre.latDeg * .pi / 180) * startLonDegPerSecond
         let speed = viewport.globeRadius * zoom * hypot(startLatDegPerSecond, alongParallel) * .pi / 180
+        guard speed >= Self.slowestRelease else { return nil }
         endSeconds = log(speed / Self.slowestSpeed) / Self.decayPerSecond
     }
 
